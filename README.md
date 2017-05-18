@@ -44,6 +44,8 @@ Image example:
 ```
 
 
+JSFiddle: https://jsfiddle.net/1g24vowu/1/
+
 
 
 # [SheetJS js-xlsx](http://sheetjs.com)
