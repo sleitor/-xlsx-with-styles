@@ -4061,7 +4061,10 @@ var XLSX = {};
         f3('vba');
         f3('comments');
         f3('drawings');
-        o[o.length] = '<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
+        $.each(ct.sheets, function(index){
+            o[o.length] = '<Override PartName="/xl/drawings/drawing' + (index + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
+        });
+
         if (o.length > 2) {
             o[o.length] = ('</Types>');
             o[1] = o[1].replace("/>", ">");
@@ -4096,6 +4099,7 @@ var XLSX = {};
             var y = parsexmltag(x);
             /* 9.3.2.2 OPC_Relationships */
             if (y[0] === '<Relationship') {
+
                 var rel = {};
                 rel.Type = y.Type;
                 rel.Target = y.Target;
@@ -4139,7 +4143,7 @@ var XLSX = {};
 
                 var twoCell = '<xdr:from><xdr:col>' + fromCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + fromRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>';
                 twoCell += '<xdr:to><xdr:col>' + toCol + '</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + toRow + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>';
-                twoCell += '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="' + (i + 1) + '" name="' + image.name + '">'
+                twoCell += '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="' + rId + '" name="' + image.name + '">';
                 twoCell += '</xdr:cNvPr><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>';
                 twoCell += '<xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId' + rId + '"/>';
                 twoCell += '<a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/>';
@@ -13485,7 +13489,7 @@ var XLSX = {};
         /* extList */
 
         var images = ws['!images'] || [];
-        if (images.length) o[o.length] = '<drawing r:id="rId1"/>';
+        if (images.length) o[o.length] = '<drawing r:id="rId' + (idx + 1) + '"/>';
 
         if (o.length > 2) {
             o[o.length] = ('</worksheet>');
@@ -20778,7 +20782,6 @@ var XLSX = {};
                     zip.file(f, image.data, image.opts);
                     add_rels(draw_rels, sId, "../media/" + image.name, RELS.IMG);
                 }
-                console.info(rId);
                 zip.file("xl/drawings/drawing" + rId + "." + wbext, write_drawing(images, rId));
                 add_rels(rels, rId, "../drawings/drawing" + rId + "." + wbext, RELS.DRAW);
                 zip.file("xl/drawings/_rels/drawing" + rId + "." + wbext + ".rels", write_rels(draw_rels));
