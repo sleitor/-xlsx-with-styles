@@ -4061,7 +4061,7 @@ var XLSX = {};
         f3('vba');
         f3('comments');
         f3('drawings');
-        $.each(ct.sheets, function(index){
+        ct.sheets.forEach(function(sheet, index){
             o[o.length] = '<Override PartName="/xl/drawings/drawing' + (index + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
         });
 
