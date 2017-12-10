@@ -182,7 +182,9 @@ function write_ws_xml_autofilter(data)/*:string*/ {
 /* 18.3.1.88 sheetViews CT_SheetViews */
 /* 18.3.1.87 sheetView CT_SheetView */
 function write_ws_xml_sheetviews(ws, opts, idx, wb)/*:string*/ {
-	return writextag("sheetViews", writextag("sheetView", null, {workbookViewId:"0"}), {});
+    var sheetViewPane = ws['!viewPane'] !== undefined ? write_ws_xml_view_pane(ws['!viewPane']) : null;
+
+	return writextag("sheetViews", writextag("sheetView", sheetViewPane, {workbookViewId:"0"}), {});
 }
 
 function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
@@ -510,4 +512,24 @@ function write_ws_xml(idx/*:number*/, opts, wb/*:Workbook*/, rels)/*:string*/ {
 
 	if(o.length>2) { o[o.length] = ('</worksheet>'); o[1]=o[1].replace("/>",">"); }
 	return o.join("");
+}
+
+function write_ws_xml_view_pane(pane) {
+  var p = {
+    state: pane.state === 'split' || pane.state === 'frozen' || pane.state === 'frozenSplit' ? pane.state : 'split',
+    xSplit: pane.xSplit || 0,
+    ySplit: pane.ySplit || 0
+  };
+
+  // If frozen pane, defaults to the cell in first unfrozen column and first unfrozen row
+  if (p.state !== 'split') {
+    p.topLeftCell = pane.topLeftCell || encode_cell({c: p.xSplit, r: p.ySplit});
+  }
+  else if (pane.topLeftCell !== undefined) {
+    p.topLeftCell = pane.topLeftCell;
+  }
+
+  if (pane.activePane !== undefined) p.activePane = pane.activePane;
+
+  return writextag('pane', null, p);
 }
