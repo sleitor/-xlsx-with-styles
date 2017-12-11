@@ -12983,6 +12983,20 @@ var XLSX = {};
         return s;
     }
 
+    function write_ws_xml_sheetpr(sheetpr) {
+        if(sheetpr.length == 0) return "";
+        var o = '<sheetPr>';
+        for(var i in sheetpr) {
+            for(var j in sheetpr[i]){
+                o += '<' + j;
+                for(var k in sheetpr[i][j])
+                    o += ' ' + k + '="' + sheetpr[i][j][k] + '"';
+                o += '/>'
+            }
+        }
+        return o + '</sheetPr>';
+    }
+
     function write_ws_xml_merges(merges) {
         if (merges.length == 0) return "";
         var o = '<mergeCells count="' + merges.length + '">';
@@ -13099,7 +13113,9 @@ var XLSX = {};
     /* 18.3.1.88 sheetViews CT_SheetViews */
     /* 18.3.1.87 sheetView CT_SheetView */
     function write_ws_xml_sheetviews(ws, opts, idx, wb) {
-        return writextag("sheetViews", writextag("sheetView", null, {workbookViewId: "0"}), {});
+        var sheetViewPane = ws['!viewPane'] !== undefined ? write_ws_xml_view_pane(ws['!viewPane']) : null;
+
+        return writextag("sheetViews", writextag("sheetView", sheetViewPane, {workbookViewId: "0"}), {});
     }
 
     function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
@@ -13388,6 +13404,7 @@ var XLSX = {};
         var s = wb.SheetNames[idx], sidx = 0, rdata = "";
         var ws = wb.Sheets[s];
         if (ws == null) ws = {};
+        if(ws['!sheetPr'] !== undefined && ws['!sheetPr'].length > 0) o[o.length] = (write_ws_xml_sheetpr(ws['!sheetPr']));
         var ref = ws['!ref'];
         if (ref == null) ref = 'A1';
         if (!rels) rels = {};
@@ -13496,6 +13513,26 @@ var XLSX = {};
             o[1] = o[1].replace("/>", ">");
         }
         return o.join("");
+    }
+
+    function write_ws_xml_view_pane(pane) {
+        var p = {
+            state: pane.state === 'split' || pane.state === 'frozen' || pane.state === 'frozenSplit' ? pane.state : 'split',
+            xSplit: pane.xSplit || 0,
+            ySplit: pane.ySplit || 0
+        };
+
+        // If frozen pane, defaults to the cell in first unfrozen column and first unfrozen row
+        if (p.state !== 'split') {
+            p.topLeftCell = pane.topLeftCell || encode_cell({c: p.xSplit, r: p.ySplit});
+        }
+        else if (pane.topLeftCell !== undefined) {
+            p.topLeftCell = pane.topLeftCell;
+        }
+
+        if (pane.activePane !== undefined) p.activePane = pane.activePane;
+
+        return writextag('pane', null, p);
     }
 
     /* [MS-XLSB] 2.4.718 BrtRowHdr */

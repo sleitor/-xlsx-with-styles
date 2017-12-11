@@ -808,6 +808,16 @@ In addition to the base sheet keys, worksheets also add:
   the worksheet.  Plaintext utilities are unaware of merge cells.  CSV export
   will write all cells in the merge range if they exist, so be sure that only
   the first cell (upper-left) in the range is set.
+  
+- `ws['!viewPane']`: object representing Worksheet View pane
+  
+  | Property Name | Default   | Description |
+  | :------------ | --------: | :---------- |
+  | state         | 'split'   | Type of pane: 'split' \|\| 'frozen' \|\| 'frozenSplit' |
+  | xSplit        | 0         | For 'split', horizontal position of the splitter, in 1/20th of a point. For 'frozen' and 'frozenSplit', amount of frozen columns. |
+  | ySplit        | 0         | For 'split', vertical position of the splitter, in 1/20th of a point. For 'frozen' and 'frozenSplit', amount of frozen rows. |
+  | topLeftCell   | special   | The cell to be top-left in the bottom-right pane. For 'frozen' and 'frozenSplit', defaults to the cell in first unfrozen column and first unfrozen row |
+  | activePane    | undefined | 'topLeft' \|\| 'topRight' \|\| 'bottomLeft' \|\| 'bottomRight' \|\| |
 
 - `ws['!protect']`: object of write sheet protection properties.  The `password`
   key specifies the password for formats that support password-protected sheets
