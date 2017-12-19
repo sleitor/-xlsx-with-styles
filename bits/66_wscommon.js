@@ -39,7 +39,7 @@ function default_margins(margins/*:Margins*/, mode/*:?string*/) {
 
 function default_pageSetup(pageSetup/*:pageSetup*/) {
 	if(!pageSetup) return;
-	var defs = [100, "portrait"];
+	var defs = ["100", "portrait"];
 	if(pageSetup.scale   == null) pageSetup.scale   = defs[0];
 	if(pageSetup.orientation  == null) pageSetup.orientation  = defs[1];
 }

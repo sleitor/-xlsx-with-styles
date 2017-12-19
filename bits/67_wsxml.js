@@ -149,9 +149,8 @@ function write_ws_xml_margins(margin) {
 }
 
 function write_ws_xml_pageSetup(pageSetup) {
-	default_margins(pageSetup);
 	default_pageSetup(pageSetup);
-	return writextag('pageMargins', null, pageSetup);
+	return writextag('pageSetup', null, pageSetup);
 }
 
 function parse_ws_xml_cols(columns, cols) {

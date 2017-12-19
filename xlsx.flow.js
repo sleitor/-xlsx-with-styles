@@ -10596,7 +10596,7 @@ function default_margins(margins/*:Margins*/, mode/*:?string*/) {
 
 function default_pageSetup(pageSetup/*:pageSetup*/) {
 	if(!pageSetup) return;
-	var defs = [100, "portrait"];
+	var defs = ["100", "portrait"];
 	if(pageSetup.scale   == null) pageSetup.scale   = defs[0];
 	if(pageSetup.orientation  == null) pageSetup.orientation  = defs[1];
 }
@@ -10811,9 +10811,8 @@ function write_ws_xml_margins(margin) {
 }
 
 function write_ws_xml_pageSetup(pageSetup) {
-	default_margins(pageSetup);
 	default_pageSetup(pageSetup);
-	return writextag('pageMargins', null, pageSetup);
+	return writextag('pageSetup', null, pageSetup);
 }
 
 function parse_ws_xml_cols(columns, cols) {
