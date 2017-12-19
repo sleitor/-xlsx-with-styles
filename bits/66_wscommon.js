@@ -37,6 +37,13 @@ function default_margins(margins/*:Margins*/, mode/*:?string*/) {
 	if(margins.footer == null) margins.footer = defs[5];
 }
 
+function default_pageSetup(pageSetup/*:pageSetup*/) {
+	if(!pageSetup) return;
+	var defs = [100, "portrait"];
+	if(pageSetup.scale   == null) pageSetup.scale   = defs[0];
+	if(pageSetup.orientation  == null) pageSetup.orientation  = defs[1];
+}
+
 function get_cell_style(styles, cell, opts) {
 	var z = opts.revssf[cell.z != null ? cell.z : "General"];
 	var i = 0x3c, len = styles.length;

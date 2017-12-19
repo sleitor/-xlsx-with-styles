@@ -148,6 +148,12 @@ function write_ws_xml_margins(margin) {
 	return writextag('pageMargins', null, margin);
 }
 
+function write_ws_xml_pageSetup(pageSetup) {
+	default_margins(pageSetup);
+	default_pageSetup(pageSetup);
+	return writextag('pageMargins', null, pageSetup);
+}
+
 function parse_ws_xml_cols(columns, cols) {
 	var seencol = false;
 	for(var coli = 0; coli != cols.length; ++coli) {
@@ -478,6 +484,7 @@ function write_ws_xml(idx/*:number*/, opts, wb/*:Workbook*/, rels)/*:string*/ {
 
 	/* printOptions */
 	if (ws['!margins'] != null) o[o.length] =  write_ws_xml_margins(ws['!margins']);
+	if (ws['!pageSetup'] != null) o[o.length] = write_ws_xml_pageSetup(ws['!pageSetup']);
 	/* pageSetup */
 
 	var hfidx = o.length;
