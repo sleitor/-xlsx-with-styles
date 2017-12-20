@@ -12823,9 +12823,14 @@ var XLSX = {};
 
     function default_pageSetup(pageSetup) {
         if(!pageSetup) return;
-        var defs = ["100", "portrait"];
-        if(pageSetup.scale   == null) pageSetup.scale   = defs[0];
-        if(pageSetup.orientation  == null) pageSetup.orientation  = defs[1];
+        var defs = ["1","1","1","100","0","portrait","downThenOver"];
+        if(pageSetup.firstPageNumber == null) pageSetup.firstPageNumber = defs[0];
+        if(pageSetup.fitToHeight == null) pageSetup.fitToHeight = defs[1];
+        if(pageSetup.fitToWidth == null) pageSetup.fitToWidth = defs[2];
+        if(pageSetup.scale == null) pageSetup.scale = defs[3];
+        if(pageSetup.useFirstPageNumber == null) pageSetup.useFirstPageNumber = defs[4];
+        if(pageSetup.orientation == null) pageSetup.orientation = defs[5];
+        if(pageSetup.pageOrder == null) pageSetup.pageOrder = defs[6];
     }
 
     function get_cell_style(styles, cell, opts) {
