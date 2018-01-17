@@ -243,7 +243,7 @@ var XLSX = {};
             t[47] = 'mmss.0';
             t[48] = '##0.0E+0';
             t[49] = '@';
-            t[56] = '"??/?? "hh"?"mm"?"ss"? "';
+	t[56]= '"上午/下午 "hh"時"mm"分"ss"秒 "';
             t[65535] = 'General';
         }
 
@@ -14988,6 +14988,24 @@ var XLSX = {};
         var o = [XML_HEADER];
         o[o.length] = WB_XML_ROOT;
 
+        var headers = [];
+        for (var i = 0; i < wb.SheetNames.length; i++) {
+            var shtname = wb.SheetNames[i];
+            var sht = wb.Sheets[shtname];
+            if (sht["!headers"]) {
+                for (let j = 0; j < sht["!headers"].length; j++) {
+                    var Ref = `'${shtname}'!${sht["!headers"][j]}`;
+                    headers[headers.length] = {
+                        Name: "_xlnm.Print_Titles",
+                        Ref,
+                        Sheet: i
+                    };
+                }
+            }
+        }
+        if (!wb.Workbook) {
+            wb.Workbook = {Names: headers};
+        }
         var write_names = (wb.Workbook && (wb.Workbook.Names || []).length > 0);
 
         /* fileVersion */
