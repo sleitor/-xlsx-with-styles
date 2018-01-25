@@ -1,6 +1,6 @@
 {
 	"name": "xlsx",
-	"version": "0.10.3-a",
+	"version": "0.10.4-a",
 	"author": "Sleitor",
 	"description": "Excel (XLSB/XLSX/XLS/XML) ODS and other spreadsheet format (CSV/DIF/DBF/SYLK) parser and writer",
 	"keywords": [

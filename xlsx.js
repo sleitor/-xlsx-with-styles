@@ -6,7 +6,7 @@
 /*global global, exports, module, require:false, process:false, Buffer:false */
 var XLSX = {};
 (function make_xlsx(XLSX) {
-    XLSX.version = '0.10.3-a';
+    XLSX.version = '0.10.4-a';
     var current_codepage = 1200;
     /*global cptable:true */
     if (typeof module !== "undefined" && typeof require !== 'undefined') {
@@ -14993,11 +14993,11 @@ var XLSX = {};
             var shtname = wb.SheetNames[i];
             var sht = wb.Sheets[shtname];
             if (sht["!headers"]) {
-                for (let j = 0; j < sht["!headers"].length; j++) {
-                    var Ref = `'${shtname}'!${sht["!headers"][j]}`;
+                for (var j = 0; j < sht["!headers"].length; j++) {
+                    var Ref = "\'" + shtname + "\'!" + sht["!headers"][j];
                     headers[headers.length] = {
                         Name: "_xlnm.Print_Titles",
-                        Ref,
+                        Ref: Ref,
                         Sheet: i
                     };
                 }
