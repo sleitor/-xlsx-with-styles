@@ -5,26 +5,26 @@ objects which have the following properties:
 
 ```typescript
 type ColInfo = {
-	/* visibility */
-	hidden?: boolean; // if true, the column is hidden
+  /* visibility */
+  hidden?: boolean; // if true, the column is hidden
 
-	/* column width is specified in one of the following ways: */
-	wpx?:    number;  // width in screen pixels
-	width?:  number;  // width in Excel's "Max Digit Width", width*256 is integral
-	wch?:    number;  // width in characters
+  /* column width is specified in one of the following ways: */
+  wpx?:    number;  // width in screen pixels
+  width?:  number;  // width in Excel's "Max Digit Width", width*256 is integral
+  wch?:    number;  // width in characters
 
-	/* other fields for preserving features from files */
-	MDW?:    number;  // Excel's "Max Digit Width" unit, always integral
+  /* other fields for preserving features from files */
+  MDW?:    number;  // Excel's "Max Digit Width" unit, always integral
 };
 ```
 
 <details>
-	<summary><b>Why are there three width types?</b> (click to show)</summary>
+  <summary><b>Why are there three width types?</b> (click to show)</summary>
 
 There are three different width types corresponding to the three different ways
 spreadsheets store column widths:
 
-SYLK and other plaintext formats use raw character count.  Contemporaneous tools
+SYLK and other plain text formats use raw character count. Contemporaneous tools
 like Visicalc and Multiplan were character based.  Since the characters had the
 same width, it sufficed to store a count.  This tradition was continued into the
 BIFF formats.
@@ -38,10 +38,15 @@ Max Digit Width is the width of the largest digit when rendered (generally the
 "0" character is the widest).  The internal width must be an integer multiple of
 the the width divided by 256.  ECMA-376 describes a formula for converting
 between pixels and the internal width.  This represents a hybrid approach.
+
+Read functions attempt to populate all three properties.  Write functions will
+try to cycle specified values to the desired type.  In order to avoid potential
+conflicts, manipulation should delete the other properties first.  For example,
+when changing the pixel width, delete the `wch` and `width` properties.
 </details>
 
 <details>
-	<summary><b>Implementation details</b> (click to show)</summary>
+  <summary><b>Implementation details</b> (click to show)</summary>
 
 Given the constraints, it is possible to determine the MDW without actually
 inspecting the font!  The parsers guess the pixel width by converting from width
@@ -64,17 +69,22 @@ objects which have the following properties:
 
 ```typescript
 type RowInfo = {
-	/* visibility */
-	hidden?: boolean; // if true, the row is hidden
+  /* visibility */
+  hidden?: boolean; // if true, the row is hidden
 
-	/* row height is specified in one of the following ways: */
-	hpx?:    number;  // height in screen pixels
-	hpt?:    number;  // height in points
+  /* row height is specified in one of the following ways: */
+  hpx?:    number;  // height in screen pixels
+  hpt?:    number;  // height in points
+
+  level?:  number;  // 0-indexed outline / group level
 };
 ```
 
+Note: Excel UI displays the base outline level as `1` and the max level as `8`.
+The `level` field stores the base outline as `0` and the max level as `7`.
+
 <details>
-	<summary><b>Implementation details</b> (click to show)</summary>
+  <summary><b>Implementation details</b> (click to show)</summary>
 
 Excel internally stores row heights in points.  The default resolution is 72 DPI
 or 96 PPI, so the pixel and point size should agree.  For different resolutions

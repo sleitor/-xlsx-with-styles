@@ -1,7 +1,7 @@
 ## Philosophy
 
 <details>
-	<summary><b>Philosophy</b> (click to show)</summary>
+  <summary><b>Philosophy</b> (click to show)</summary>
 
 Prior to SheetJS, APIs for processing spreadsheet files were format-specific.
 Third-party libraries either supported one format, or they involved a separate
@@ -10,9 +10,9 @@ Excel 2007, nothing outside of SheetJS or Excel supported the format.
 
 To promote a format-agnostic view, js-xlsx starts from a pure-JS representation
 that we call the ["Common Spreadsheet Format"](#common-spreadsheet-format).
-Emphasizing a uniform object representation enables radical features like format
-conversion (e.g. reading an XLSX template and saving as XLS) and circumvents the
-"class trap".  By abstracting the complexities of the various formats, tools
+Emphasizing a uniform object representation enables new features like format
+conversion (reading an XLSX template and saving as XLS) and circumvents the mess
+of classes.  By abstracting the complexities of the various formats, tools
 need not worry about the specific file type!
 
 A simple object representation combined with careful coding practices enables
@@ -30,6 +30,10 @@ is spiritually similar to XLSX but files often tend up taking less than half the
 space and open much faster!  Even though an XLSX writer is available, other
 format writers are available so users can take advantage of the unique
 characteristics of each format.
+
+The primary focus of the Community Edition is correct data interchange, focused
+on extracting data from any compatible data representation and exporting data in
+various formats suitable for any third party interface.
 
 </details>
 

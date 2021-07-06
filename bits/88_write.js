@@ -1,27 +1,67 @@
-function write_zip_type(wb/*:Workbook*/, opts/*:?WriteOpts*/) {
+function write_cfb_ctr(cfb/*:CFBContainer*/, o/*:WriteOpts*/)/*:any*/ {
+	switch(o.type) {
+		case "base64": case "binary": break;
+		case "buffer": case "array": o.type = ""; break;
+		case "file": return write_dl(o.file, CFB.write(cfb, {type:has_buf ? 'buffer' : ""}));
+		case "string": throw new Error("'string' output type invalid for '" + o.bookType + "' files");
+		default: throw new Error("Unrecognized type " + o.type);
+	}
+	return CFB.write(cfb, o);
+}
+
+/*:: declare var encrypt_agile:any; */
+function write_zip_type(wb/*:Workbook*/, opts/*:?WriteOpts*/)/*:any*/ {
 	var o = opts||{};
 	var z = write_zip(wb, o);
 	var oopts = {};
 	if(o.compression) oopts.compression = 'DEFLATE';
-	switch(o.type) {
+	if(o.password) oopts.type = has_buf ? "nodebuffer" : "string";
+	else switch(o.type) {
 		case "base64": oopts.type = "base64"; break;
 		case "binary": oopts.type = "string"; break;
+		case "string": throw new Error("'string' output type invalid for '" + o.bookType + "' files");
 		case "buffer":
-		case "file": oopts.type = "nodebuffer"; break;
+		case "file": oopts.type = has_buf ? "nodebuffer" : "string"; break;
 		default: throw new Error("Unrecognized type " + o.type);
 	}
-	if(o.type === "file") return _fs.writeFileSync(o.file, z.generate(oopts));
-	return z.generate(oopts);
+	var out = z.FullPaths ? CFB.write(z, {fileType:"zip", type: /*::(*/{"nodebuffer": "buffer", "string": "binary"}/*:: :any)*/[oopts.type] || oopts.type}) : z.generate(oopts);
+/*jshint -W083 */
+	if(o.password && typeof encrypt_agile !== 'undefined') return write_cfb_ctr(encrypt_agile(out, o.password), o); // eslint-disable-line no-undef
+/*jshint +W083 */
+	if(o.type === "file") return write_dl(o.file, out);
+	return o.type == "string" ? utf8read(/*::(*/out/*:: :any)*/) : out;
 }
 
-/* TODO: test consistency */
-function write_bstr_type(out/*:string*/, opts/*:WriteOpts*/) {
+function write_cfb_type(wb/*:Workbook*/, opts/*:?WriteOpts*/)/*:any*/ {
+	var o = opts||{};
+	var cfb/*:CFBContainer*/ = write_xlscfb(wb, o);
+	return write_cfb_ctr(cfb, o);
+}
+
+function write_string_type(out/*:string*/, opts/*:WriteOpts*/, bom/*:?string*/)/*:any*/ {
+	if(!bom) bom = "";
+	var o = bom + out;
+	switch(opts.type) {
+		case "base64": return Base64.encode(utf8write(o));
+		case "binary": return utf8write(o);
+		case "string": return out;
+		case "file": return write_dl(opts.file, o, 'utf8');
+		case "buffer": {
+			if(has_buf) return Buffer_from(o, 'utf8');
+			else return write_string_type(o, {type:'binary'}).split("").map(function(c) { return c.charCodeAt(0); });
+		}
+	}
+	throw new Error("Unrecognized type " + opts.type);
+}
+
+function write_stxt_type(out/*:string*/, opts/*:WriteOpts*/)/*:any*/ {
 	switch(opts.type) {
 		case "base64": return Base64.encode(out);
 		case "binary": return out;
-		case "file": return _fs.writeFileSync(opts.file, out, 'binary');
+		case "string": return out; /* override in sheet_to_txt */
+		case "file": return write_dl(opts.file, out, 'binary');
 		case "buffer": {
-			if(has_buf) return new Buffer(out, 'utf8');
+			if(has_buf) return Buffer_from(out, 'binary');
 			else return out.split("").map(function(c) { return c.charCodeAt(0); });
 		}
 	}
@@ -29,75 +69,70 @@ function write_bstr_type(out/*:string*/, opts/*:WriteOpts*/) {
 }
 
 /* TODO: test consistency */
-function write_string_type(out/*:string*/, opts/*:WriteOpts*/) {
+function write_binary_type(out, opts/*:WriteOpts*/)/*:any*/ {
 	switch(opts.type) {
-		case "base64": return Base64.encode(out);
-		case "binary": return out;
-		case "file": return _fs.writeFileSync(opts.file, out, 'utf8');
-		case "buffer": {
-			if(has_buf) return new Buffer(out, 'utf8');
-			else return out.split("").map(function(c) { return c.charCodeAt(0); });
-		}
-	}
-	throw new Error("Unrecognized type " + opts.type);
-}
-
-/* TODO: test consistency */
-function write_binary_type(out, opts/*:WriteOpts*/) {
-	switch(opts.type) {
+		case "string":
 		case "base64":
 		case "binary":
 			var bstr = "";
+			// $FlowIgnore
 			for(var i = 0; i < out.length; ++i) bstr += String.fromCharCode(out[i]);
-			return opts.type == 'base64' ? Base64.encode(bstr) : bstr;
-		case "file": return _fs.writeFileSync(opts.file, out);
+			return opts.type == 'base64' ? Base64.encode(bstr) : opts.type == 'string' ? utf8read(bstr) : bstr;
+		case "file": return write_dl(opts.file, out);
 		case "buffer": return out;
 		default: throw new Error("Unrecognized type " + opts.type);
 	}
 }
 
 function writeSync(wb/*:Workbook*/, opts/*:?WriteOpts*/) {
+	reset_cp();
 	check_wb(wb);
 	var o = opts||{};
+	if(o.cellStyles) { o.cellNF = true; o.sheetStubs = true; }
+	if(o.type == "array") { o.type = "binary"; var out/*:string*/ = (writeSync(wb, o)/*:any*/); o.type = "array"; return s2ab(out); }
 	switch(o.bookType || 'xlsb') {
 		case 'xml':
 		case 'xlml': return write_string_type(write_xlml(wb, o), o);
 		case 'slk':
 		case 'sylk': return write_string_type(write_slk_str(wb, o), o);
+		case 'htm':
 		case 'html': return write_string_type(write_htm_str(wb, o), o);
-		case 'txt': return write_bstr_type(write_txt_str(wb, o), o);
-		case 'csv': return write_string_type(write_csv_str(wb, o), o);
+		case 'txt': return write_stxt_type(write_txt_str(wb, o), o);
+		case 'csv': return write_string_type(write_csv_str(wb, o), o, "\ufeff");
 		case 'dif': return write_string_type(write_dif_str(wb, o), o);
+		case 'dbf': return write_binary_type(write_dbf_buf(wb, o), o);
 		case 'prn': return write_string_type(write_prn_str(wb, o), o);
+		case 'rtf': return write_string_type(write_rtf_str(wb, o), o);
+		case 'eth': return write_string_type(write_eth_str(wb, o), o);
 		case 'fods': return write_string_type(write_ods(wb, o), o);
-		case 'biff2': return write_binary_type(write_biff_buf(wb, o), o);
+		case 'biff2': if(!o.biff) o.biff = 2; /* falls through */
+		case 'biff3': if(!o.biff) o.biff = 3; /* falls through */
+		case 'biff4': if(!o.biff) o.biff = 4; return write_binary_type(write_biff_buf(wb, o), o);
+		case 'biff5': if(!o.biff) o.biff = 5; /* falls through */
+		case 'biff8':
+		case 'xla':
+		case 'xls': if(!o.biff) o.biff = 8; return write_cfb_type(wb, o);
 		case 'xlsx':
 		case 'xlsm':
+		case 'xlam':
 		case 'xlsb':
 		case 'ods': return write_zip_type(wb, o);
 		default: throw new Error ("Unrecognized bookType |" + o.bookType + "|");
 	}
 }
 
-function resolve_book_type(o/*?WriteFileOpts*/) {
-	if(!o.bookType) switch(o.file.slice(o.file.lastIndexOf(".")).toLowerCase()) {
-		case '.xlsx': o.bookType = 'xlsx'; break;
-		case '.xlsm': o.bookType = 'xlsm'; break;
-		case '.xlsb': o.bookType = 'xlsb'; break;
-		case '.fods': o.bookType = 'fods'; break;
-		case '.xlml': o.bookType = 'xlml'; break;
-		case '.sylk': o.bookType = 'sylk'; break;
-		case '.html': o.bookType = 'html'; break;
-		case '.xls': o.bookType = 'biff2'; break;
-		case '.xml': o.bookType = 'xml'; break;
-		case '.ods': o.bookType = 'ods'; break;
-		case '.csv': o.bookType = 'csv'; break;
-		case '.txt': o.bookType = 'txt'; break;
-		case '.dif': o.bookType = 'dif'; break;
-		case '.prn': o.bookType = 'prn'; break;
-		case '.slk': o.bookType = 'sylk'; break;
-		case '.htm': o.bookType = 'html'; break;
-	}
+function resolve_book_type(o/*:WriteFileOpts*/) {
+	if(o.bookType) return;
+	var _BT = {
+		"xls": "biff8",
+		"htm": "html",
+		"slk": "sylk",
+		"socialcalc": "eth",
+		"Sh33tJS": "WTF"
+	};
+	var ext = o.file.slice(o.file.lastIndexOf(".")).toLowerCase();
+	if(ext.match(/^\.[a-z]+$/)) o.bookType = ext.slice(1);
+	o.bookType = _BT[o.bookType] || o.bookType;
 }
 
 function writeFileSync(wb/*:Workbook*/, filename/*:string*/, opts/*:?WriteFileOpts*/) {

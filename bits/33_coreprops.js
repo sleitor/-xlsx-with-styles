@@ -25,18 +25,19 @@ var CORE_PROPS_REGEX/*:Array<RegExp>*/ = (function() {
 	var r = new Array(CORE_PROPS.length);
 	for(var i = 0; i < CORE_PROPS.length; ++i) {
 		var f = CORE_PROPS[i];
-		var g = "(?:"+ f[0].substr(0,f[0].indexOf(":")) +":)"+ f[0].substr(f[0].indexOf(":")+1);
-		r[i] = new RegExp("<" + g + "[^>]*>(.*)<\/" + g + ">");
+		var g = "(?:"+ f[0].slice(0,f[0].indexOf(":")) +":)"+ f[0].slice(f[0].indexOf(":")+1);
+		r[i] = new RegExp("<" + g + "[^>]*>([\\s\\S]*?)<\/" + g + ">");
 	}
 	return r;
 })();
 
 function parse_core_props(data) {
 	var p = {};
+	data = utf8read(data);
 
 	for(var i = 0; i < CORE_PROPS.length; ++i) {
 		var f = CORE_PROPS[i], cur = data.match(CORE_PROPS_REGEX[i]);
-		if(cur != null && cur.length > 0) p[f[1]] = cur[1];
+		if(cur != null && cur.length > 0) p[f[1]] = unescapexml(cur[1]);
 		if(f[2] === 'date' && p[f[1]]) p[f[1]] = parseDate(p[f[1]]);
 	}
 
@@ -55,6 +56,7 @@ var CORE_PROPS_XML_ROOT = writextag('cp:coreProperties', null, {
 function cp_doit(f, g, h, o, p) {
 	if(p[f] != null || g == null || g === "") return;
 	p[f] = g;
+	g = escapexml(g);
 	o[o.length] = (h ? writextag(f,g,h) : writetag(f,g));
 }
 

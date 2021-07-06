@@ -6,17 +6,21 @@ var CS_XML_ROOT = writextag('chartsheet', null, {
 });
 
 /* 18.3 Worksheets also covers Chartsheets */
-function parse_cs_xml(data/*:?string*/, opts, rels, wb, themes, styles)/*:Worksheet*/ {
+function parse_cs_xml(data/*:?string*/, opts, idx/*:number*/, rels, wb/*::, themes, styles*/)/*:Worksheet*/ {
 	if(!data) return data;
 	/* 18.3.1.12 chartsheet CT_ChartSheet */
 	if(!rels) rels = {'!id':{}};
-	var s = {'!type':"chart", '!chart':null, '!rel':""};
+	var s = ({'!type':"chart", '!drawel':null, '!rel':""}/*:any*/);
 	var m;
+
+	/* 18.3.1.83 sheetPr CT_ChartsheetPr */
+	var sheetPr = data.match(sheetprregex);
+	if(sheetPr) parse_ws_xml_sheetpr(sheetPr[0], s, wb, idx);
 
 	/* 18.3.1.36 drawing CT_Drawing */
 	if((m = data.match(/drawing r:id="(.*?)"/))) s['!rel'] = m[1];
 
-	if(rels['!id'][s['!rel']]) s['!chart'] = rels['!id'][s['!rel']];
+	if(rels['!id'][s['!rel']]) s['!drawel'] = rels['!id'][s['!rel']];
 	return s;
 }
 function write_cs_xml(idx/*:number*/, opts, wb/*:Workbook*/, rels)/*:string*/ {
@@ -27,12 +31,19 @@ function write_cs_xml(idx/*:number*/, opts, wb/*:Workbook*/, rels)/*:string*/ {
 	return o.join("");
 }
 
+/* [MS-XLSB] 2.4.331 BrtCsProp */
+function parse_BrtCsProp(data, length/*:number*/) {
+	data.l += 10;
+	var name = parse_XLWideString(data, length - 10);
+	return { name: name };
+}
+
 /* [MS-XLSB] 2.1.7.7 Chart Sheet */
-function parse_cs_bin(data, opts, rels, wb, themes, styles)/*:Worksheet*/ {
+function parse_cs_bin(data, opts, idx/*:number*/, rels, wb/*::, themes, styles*/)/*:Worksheet*/ {
 	if(!data) return data;
 	if(!rels) rels = {'!id':{}};
-	var s = {'!type':"chart", '!chart':null, '!rel':""};
-	var state = [];
+	var s = {'!type':"chart", '!drawel':null, '!rel':""};
+	var state/*:Array<string>*/ = [];
 	var pass = false;
 	recordhopper(data, function cs_parse(val, R_n, RT) {
 		switch(RT) {
@@ -40,15 +51,19 @@ function parse_cs_bin(data, opts, rels, wb, themes, styles)/*:Worksheet*/ {
 			case 0x0226: /* 'BrtDrawing' */
 				s['!rel'] = val; break;
 
-			/* case 'BrtUid': */
+			case 0x028B: /* 'BrtCsProp' */
+				if(!wb.Sheets[idx]) wb.Sheets[idx] = {};
+				if(val.name) wb.Sheets[idx].CodeName = val.name;
+				break;
+
 			case 0x0232: /* 'BrtBkHim' */
 			case 0x028C: /* 'BrtCsPageSetup' */
-			case 0x028B: /* 'BrtCsProp' */
 			case 0x029D: /* 'BrtCsProtection' */
 			case 0x02A7: /* 'BrtCsProtectionIso' */
 			case 0x0227: /* 'BrtLegacyDrawing' */
 			case 0x0228: /* 'BrtLegacyDrawingHF' */
 			case 0x01DC: /* 'BrtMargins' */
+			case 0x0C00: /* 'BrtUid' */
 				break;
 
 			case 0x0023: /* 'BrtFRTBegin' */
@@ -67,10 +82,10 @@ function parse_cs_bin(data, opts, rels, wb, themes, styles)/*:Worksheet*/ {
 		}
 	}, opts);
 
-	if(rels['!id'][s['!rel']]) s['!chart'] = rels['!id'][s['!rel']];
+	if(rels['!id'][s['!rel']]) s['!drawel'] = rels['!id'][s['!rel']];
 	return s;
 }
-function write_cs_bin(idx/*:number*/, opts, wb/*:Workbook*/, rels) {
+function write_cs_bin(/*::idx:number, opts, wb:Workbook, rels*/) {
 	var ba = buf_array();
 	write_record(ba, "BrtBeginSheet");
 	/* [BrtCsProp] */

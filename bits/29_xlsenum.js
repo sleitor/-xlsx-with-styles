@@ -1,45 +1,43 @@
 /* [MS-OLEPS] 2.2 PropertyType */
-{
-	//var VT_EMPTY    = 0x0000;
-	//var VT_NULL     = 0x0001;
-	var VT_I2       = 0x0002;
-	var VT_I4       = 0x0003;
-	//var VT_R4       = 0x0004;
-	//var VT_R8       = 0x0005;
-	//var VT_CY       = 0x0006;
-	//var VT_DATE     = 0x0007;
-	//var VT_BSTR     = 0x0008;
-	//var VT_ERROR    = 0x000A;
-	var VT_BOOL     = 0x000B;
-	var VT_VARIANT  = 0x000C;
-	//var VT_DECIMAL  = 0x000E;
-	//var VT_I1       = 0x0010;
-	//var VT_UI1      = 0x0011;
-	//var VT_UI2      = 0x0012;
-	var VT_UI4      = 0x0013;
-	//var VT_I8       = 0x0014;
-	var VT_UI8      = 0x0015;
-	//var VT_INT      = 0x0016;
-	//var VT_UINT     = 0x0017;
-	var VT_LPSTR    = 0x001E;
-	//var VT_LPWSTR   = 0x001F;
-	var VT_FILETIME = 0x0040;
-	//var VT_BLOB     = 0x0041;
-	//var VT_STREAM   = 0x0042;
-	//var VT_STORAGE  = 0x0043;
-	//var VT_STREAMED_Object  = 0x0044;
-	//var VT_STORED_Object    = 0x0045;
-	//var VT_BLOB_Object      = 0x0046;
-	var VT_CF       = 0x0047;
-	//var VT_CLSID    = 0x0048;
-	//var VT_VERSIONED_STREAM = 0x0049;
-	var VT_VECTOR   = 0x1000;
-	//var VT_ARRAY    = 0x2000;
+//var VT_EMPTY    = 0x0000;
+//var VT_NULL     = 0x0001;
+var VT_I2       = 0x0002;
+var VT_I4       = 0x0003;
+//var VT_R4       = 0x0004;
+//var VT_R8       = 0x0005;
+//var VT_CY       = 0x0006;
+//var VT_DATE     = 0x0007;
+//var VT_BSTR     = 0x0008;
+//var VT_ERROR    = 0x000A;
+var VT_BOOL     = 0x000B;
+var VT_VARIANT  = 0x000C;
+//var VT_DECIMAL  = 0x000E;
+//var VT_I1       = 0x0010;
+//var VT_UI1      = 0x0011;
+//var VT_UI2      = 0x0012;
+var VT_UI4      = 0x0013;
+//var VT_I8       = 0x0014;
+//var VT_UI8      = 0x0015;
+//var VT_INT      = 0x0016;
+//var VT_UINT     = 0x0017;
+var VT_LPSTR    = 0x001E;
+//var VT_LPWSTR   = 0x001F;
+var VT_FILETIME = 0x0040;
+var VT_BLOB     = 0x0041;
+//var VT_STREAM   = 0x0042;
+//var VT_STORAGE  = 0x0043;
+//var VT_STREAMED_Object  = 0x0044;
+//var VT_STORED_Object    = 0x0045;
+//var VT_BLOB_Object      = 0x0046;
+var VT_CF       = 0x0047;
+//var VT_CLSID    = 0x0048;
+//var VT_VERSIONED_STREAM = 0x0049;
+var VT_VECTOR   = 0x1000;
+//var VT_ARRAY    = 0x2000;
 
-	var VT_STRING   = 0x0050; // 2.3.3.1.11 VtString
-	var VT_USTR     = 0x0051; // 2.3.3.1.12 VtUnalignedString
-	var VT_CUSTOM   = [VT_STRING, VT_USTR];
-}
+var VT_STRING   = 0x0050; // 2.3.3.1.11 VtString
+var VT_USTR     = 0x0051; // 2.3.3.1.12 VtUnalignedString
+var VT_CUSTOM   = [VT_STRING, VT_USTR];
 
 /* [MS-OSHARED] 2.3.3.2.2.1 Document Summary Information PIDDSI */
 var DocSummaryPIDDSI = {
@@ -53,16 +51,17 @@ var DocSummaryPIDDSI = {
 	/*::[*/0x08/*::]*/: { n: 'NoteCount', t: VT_I4 },
 	/*::[*/0x09/*::]*/: { n: 'HiddenCount', t: VT_I4 },
 	/*::[*/0x0a/*::]*/: { n: 'MultimediaClipCount', t: VT_I4 },
-	/*::[*/0x0b/*::]*/: { n: 'Scale', t: VT_BOOL },
-	/*::[*/0x0c/*::]*/: { n: 'HeadingPair', t: VT_VECTOR | VT_VARIANT },
-	/*::[*/0x0d/*::]*/: { n: 'DocParts', t: VT_VECTOR | VT_LPSTR },
+	/*::[*/0x0b/*::]*/: { n: 'ScaleCrop', t: VT_BOOL },
+	/*::[*/0x0c/*::]*/: { n: 'HeadingPairs', t: VT_VECTOR | VT_VARIANT },
+	/*::[*/0x0d/*::]*/: { n: 'TitlesOfParts', t: VT_VECTOR | VT_LPSTR },
 	/*::[*/0x0e/*::]*/: { n: 'Manager', t: VT_STRING },
 	/*::[*/0x0f/*::]*/: { n: 'Company', t: VT_STRING },
-	/*::[*/0x10/*::]*/: { n: 'LinksDirty', t: VT_BOOL },
+	/*::[*/0x10/*::]*/: { n: 'LinksUpToDate', t: VT_BOOL },
 	/*::[*/0x11/*::]*/: { n: 'CharacterCount', t: VT_I4 },
 	/*::[*/0x13/*::]*/: { n: 'SharedDoc', t: VT_BOOL },
-	/*::[*/0x16/*::]*/: { n: 'HLinksChanged', t: VT_BOOL },
+	/*::[*/0x16/*::]*/: { n: 'HyperlinksChanged', t: VT_BOOL },
 	/*::[*/0x17/*::]*/: { n: 'AppVersion', t: VT_I4, p: 'version' },
+	/*::[*/0x18/*::]*/: { n: 'DigSig', t: VT_BLOB },
 	/*::[*/0x1A/*::]*/: { n: 'ContentType', t: VT_STRING },
 	/*::[*/0x1B/*::]*/: { n: 'ContentStatus', t: VT_STRING },
 	/*::[*/0x1C/*::]*/: { n: 'Language', t: VT_STRING },
@@ -89,8 +88,8 @@ var SummaryPIDSI = {
 	/*::[*/0x0F/*::]*/: { n: 'WordCount', t: VT_I4 },
 	/*::[*/0x10/*::]*/: { n: 'CharCount', t: VT_I4 },
 	/*::[*/0x11/*::]*/: { n: 'Thumbnail', t: VT_CF },
-	/*::[*/0x12/*::]*/: { n: 'ApplicationName', t: VT_LPSTR },
-	/*::[*/0x13/*::]*/: { n: 'DocumentSecurity', t: VT_I4 },
+	/*::[*/0x12/*::]*/: { n: 'Application', t: VT_STRING },
+	/*::[*/0x13/*::]*/: { n: 'DocSecurity', t: VT_I4 },
 	/*::[*/0xFF/*::]*/: {}
 };
 
@@ -102,9 +101,12 @@ var SpecialProperties = {
 };
 
 (function() {
-	for(var y in SpecialProperties) if(SpecialProperties.hasOwnProperty(y))
+	for(var y in SpecialProperties) if(Object.prototype.hasOwnProperty.call(SpecialProperties, y))
 	DocSummaryPIDDSI[y] = SummaryPIDSI[y] = SpecialProperties[y];
 })();
+
+var DocSummaryRE/*:{[key:string]:string}*/ = evert_key(DocSummaryPIDDSI, "n");
+var SummaryRE/*:{[key:string]:string}*/ = evert_key(SummaryPIDSI, "n");
 
 /* [MS-XLS] 2.4.63 Country/Region codes */
 var CountryEnum = {
@@ -183,11 +185,11 @@ var XLSFillPattern = [
 	'gray0625'
 ];
 
-function rgbify(arr) { return arr.map(function(x) { return [(x>>16)&255,(x>>8)&255,x&255]; }); }
+function rgbify(arr/*:Array<number>*/)/*:Array<[number, number, number]>*/ { return arr.map(function(x) { return [(x>>16)&255,(x>>8)&255,x&255]; }); }
 
 /* [MS-XLS] 2.5.161 */
-/* [MS-XLSB] 2.5.75 */
-var XLSIcv = rgbify([
+/* [MS-XLSB] 2.5.75 Icv */
+var _XLSIcv = rgbify([
 	/* Color Constants */
 	0x000000,
 	0xFFFFFF,
@@ -279,4 +281,18 @@ var XLSIcv = rgbify([
 	0x000000, /* 0x50 icvInfoBk ?? */
 	0x000000 /* 0x51 icvInfoText ?? */
 ]);
+var XLSIcv = dup(_XLSIcv);
 
+/* [MS-XLSB] 2.5.97.2 */
+var BErr = {
+	/*::[*/0x00/*::]*/: "#NULL!",
+	/*::[*/0x07/*::]*/: "#DIV/0!",
+	/*::[*/0x0F/*::]*/: "#VALUE!",
+	/*::[*/0x17/*::]*/: "#REF!",
+	/*::[*/0x1D/*::]*/: "#NAME?",
+	/*::[*/0x24/*::]*/: "#NUM!",
+	/*::[*/0x2A/*::]*/: "#N/A",
+	/*::[*/0x2B/*::]*/: "#GETTING_DATA",
+	/*::[*/0xFF/*::]*/: "#WTF?"
+};
+var RBErr = evert_num(BErr);

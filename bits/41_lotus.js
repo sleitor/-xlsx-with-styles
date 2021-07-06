@@ -8,7 +8,7 @@ var WK_ = (function() {
 			var R = Enum[RT] || Enum[0xFF];
 			var length = data.read_shift(2);
 			var tgt = data.l + length;
-			var d = R.f(data, length, opts);
+			var d = (R.f||parsenoop)(data, length, opts);
 			data.l = tgt;
 			if(cb(d, R.n, RT)) return;
 		}
@@ -24,7 +24,7 @@ var WK_ = (function() {
 		throw "Unsupported type " + opts.type;
 	}
 
-	function lotus_to_workbook_buf(d,opts)/*:Workbook*/ {
+	function lotus_to_workbook_buf(d, opts)/*:Workbook*/ {
 		if(!d) return d;
 		var o = opts || {};
 		if(DENSE != null && o.dense == null) o.dense = DENSE;
@@ -32,6 +32,7 @@ var WK_ = (function() {
 		var sheets = {}, snames = [n];
 
 		var refguess = {s: {r:0, c:0}, e: {r:0, c:0} };
+		var sheetRows = o.sheetRows || 0;
 
 		if(d[2] == 0x02) o.Enum = WK1Enum;
 		else if(d[2] == 0x1a) o.Enum = WK3Enum;
@@ -45,7 +46,7 @@ var WK_ = (function() {
 					break;
 				case 0x06: refguess = val; break; /* RANGE */
 				case 0x0F: /* LABEL */
-					if(!o.qpro) val[1].v = val[1].v.substr(1);
+					if(!o.qpro) val[1].v = val[1].v.slice(1);
 					/* falls through */
 				case 0x0D: /* INTEGER */
 				case 0x0E: /* NUMBER */
@@ -63,7 +64,7 @@ var WK_ = (function() {
 					break;
 			} else switch(RT) {
 				case 0x16: /* LABEL16 */
-					val[1].v = val[1].v.substr(1);
+					val[1].v = val[1].v.slice(1);
 					/* falls through */
 				case 0x17: /* NUMBER17 */
 				case 0x18: /* NUMBER18 */
@@ -79,7 +80,11 @@ var WK_ = (function() {
 						sidx = val[3]; n = "Sheet" + (sidx + 1);
 						snames.push(n);
 					}
-					s[encode_cell(val[0])] = val[1];
+					if(sheetRows > 0 && val[0].r >= sheetRows) break;
+					if(o.dense) {
+						if(!s[val[0].r]) s[val[0].r] = [];
+						s[val[0].r][val[0].c] = val[1];
+					} else s[encode_cell(val[0])] = val[1];
 					if(refguess.e.c < val[0].c) refguess.e.c = val[0].c;
 					if(refguess.e.r < val[0].r) refguess.e.r = val[0].r;
 					break;
@@ -92,7 +97,7 @@ var WK_ = (function() {
 		return { SheetNames: snames, Sheets:sheets };
 	}
 
-	function parse_RANGE(blob, length) {
+	function parse_RANGE(blob) {
 		var o = {s:{c:0,r:0},e:{c:0,r:0}};
 		o.s.c = blob.read_shift(2);
 		o.s.r = blob.read_shift(2);
@@ -156,7 +161,7 @@ var WK_ = (function() {
 		return o;
 	}
 
-	function parse_cell_3(blob, length) {
+	function parse_cell_3(blob/*::, length*/) {
 		var o = [{c:0,r:0}, {t:'n',v:0}, 0];
 		o[0].r = blob.read_shift(2); o[3] = blob[blob.l++]; o[0].c = blob[blob.l++];
 		return o;
@@ -195,7 +200,7 @@ var WK_ = (function() {
 		var e = blob.read_shift(2);
 		if(e == 0xFFFF) { o[1].v = 0; return o; }
 		var s = e & 0x8000; e = (e&0x7FFF) - 16446;
-		o[1].v = ((e > 0 ? (v2 << e) : (v2 >>> -e)) + (e > -32 ? (v1 << (e + 32)) : (v1 >>> -(e + 32))));
+		o[1].v = (s*2 - 1) * ((e > 0 ? (v2 << e) : (v2 >>> -e)) + (e > -32 ? (v1 << (e + 32)) : (v1 >>> -(e + 32))));
 		return o;
 	}
 
@@ -227,95 +232,95 @@ var WK_ = (function() {
 
 	var WK1Enum = {
 		/*::[*/0x0000/*::]*/: { n:"BOF", f:parseuint16 },
-		/*::[*/0x0001/*::]*/: { n:"EOF", f:parsenoop },
-		/*::[*/0x0002/*::]*/: { n:"CALCMODE", f:parsenoop },
-		/*::[*/0x0003/*::]*/: { n:"CALCORDER", f:parsenoop },
-		/*::[*/0x0004/*::]*/: { n:"SPLIT", f:parsenoop },
-		/*::[*/0x0005/*::]*/: { n:"SYNC", f:parsenoop },
+		/*::[*/0x0001/*::]*/: { n:"EOF" },
+		/*::[*/0x0002/*::]*/: { n:"CALCMODE" },
+		/*::[*/0x0003/*::]*/: { n:"CALCORDER" },
+		/*::[*/0x0004/*::]*/: { n:"SPLIT" },
+		/*::[*/0x0005/*::]*/: { n:"SYNC" },
 		/*::[*/0x0006/*::]*/: { n:"RANGE", f:parse_RANGE },
-		/*::[*/0x0007/*::]*/: { n:"WINDOW1", f:parsenoop },
-		/*::[*/0x0008/*::]*/: { n:"COLW1", f:parsenoop },
-		/*::[*/0x0009/*::]*/: { n:"WINTWO", f:parsenoop },
-		/*::[*/0x000A/*::]*/: { n:"COLW2", f:parsenoop },
-		/*::[*/0x000B/*::]*/: { n:"NAME", f:parsenoop },
-		/*::[*/0x000C/*::]*/: { n:"BLANK", f:parsenoop },
+		/*::[*/0x0007/*::]*/: { n:"WINDOW1" },
+		/*::[*/0x0008/*::]*/: { n:"COLW1" },
+		/*::[*/0x0009/*::]*/: { n:"WINTWO" },
+		/*::[*/0x000A/*::]*/: { n:"COLW2" },
+		/*::[*/0x000B/*::]*/: { n:"NAME" },
+		/*::[*/0x000C/*::]*/: { n:"BLANK" },
 		/*::[*/0x000D/*::]*/: { n:"INTEGER", f:parse_INTEGER },
 		/*::[*/0x000E/*::]*/: { n:"NUMBER", f:parse_NUMBER },
 		/*::[*/0x000F/*::]*/: { n:"LABEL", f:parse_LABEL },
 		/*::[*/0x0010/*::]*/: { n:"FORMULA", f:parse_FORMULA },
-		/*::[*/0x0018/*::]*/: { n:"TABLE", f:parsenoop },
-		/*::[*/0x0019/*::]*/: { n:"ORANGE", f:parsenoop },
-		/*::[*/0x001A/*::]*/: { n:"PRANGE", f:parsenoop },
-		/*::[*/0x001B/*::]*/: { n:"SRANGE", f:parsenoop },
-		/*::[*/0x001C/*::]*/: { n:"FRANGE", f:parsenoop },
-		/*::[*/0x001D/*::]*/: { n:"KRANGE1", f:parsenoop },
-		/*::[*/0x0020/*::]*/: { n:"HRANGE", f:parsenoop },
-		/*::[*/0x0023/*::]*/: { n:"KRANGE2", f:parsenoop },
-		/*::[*/0x0024/*::]*/: { n:"PROTEC", f:parsenoop },
-		/*::[*/0x0025/*::]*/: { n:"FOOTER", f:parsenoop },
-		/*::[*/0x0026/*::]*/: { n:"HEADER", f:parsenoop },
-		/*::[*/0x0027/*::]*/: { n:"SETUP", f:parsenoop },
-		/*::[*/0x0028/*::]*/: { n:"MARGINS", f:parsenoop },
-		/*::[*/0x0029/*::]*/: { n:"LABELFMT", f:parsenoop },
-		/*::[*/0x002A/*::]*/: { n:"TITLES", f:parsenoop },
-		/*::[*/0x002B/*::]*/: { n:"SHEETJS", f:parsenoop },
-		/*::[*/0x002D/*::]*/: { n:"GRAPH", f:parsenoop },
-		/*::[*/0x002E/*::]*/: { n:"NGRAPH", f:parsenoop },
-		/*::[*/0x002F/*::]*/: { n:"CALCCOUNT", f:parsenoop },
-		/*::[*/0x0030/*::]*/: { n:"UNFORMATTED", f:parsenoop },
-		/*::[*/0x0031/*::]*/: { n:"CURSORW12", f:parsenoop },
-		/*::[*/0x0032/*::]*/: { n:"WINDOW", f:parsenoop },
+		/*::[*/0x0018/*::]*/: { n:"TABLE" },
+		/*::[*/0x0019/*::]*/: { n:"ORANGE" },
+		/*::[*/0x001A/*::]*/: { n:"PRANGE" },
+		/*::[*/0x001B/*::]*/: { n:"SRANGE" },
+		/*::[*/0x001C/*::]*/: { n:"FRANGE" },
+		/*::[*/0x001D/*::]*/: { n:"KRANGE1" },
+		/*::[*/0x0020/*::]*/: { n:"HRANGE" },
+		/*::[*/0x0023/*::]*/: { n:"KRANGE2" },
+		/*::[*/0x0024/*::]*/: { n:"PROTEC" },
+		/*::[*/0x0025/*::]*/: { n:"FOOTER" },
+		/*::[*/0x0026/*::]*/: { n:"HEADER" },
+		/*::[*/0x0027/*::]*/: { n:"SETUP" },
+		/*::[*/0x0028/*::]*/: { n:"MARGINS" },
+		/*::[*/0x0029/*::]*/: { n:"LABELFMT" },
+		/*::[*/0x002A/*::]*/: { n:"TITLES" },
+		/*::[*/0x002B/*::]*/: { n:"SHEETJS" },
+		/*::[*/0x002D/*::]*/: { n:"GRAPH" },
+		/*::[*/0x002E/*::]*/: { n:"NGRAPH" },
+		/*::[*/0x002F/*::]*/: { n:"CALCCOUNT" },
+		/*::[*/0x0030/*::]*/: { n:"UNFORMATTED" },
+		/*::[*/0x0031/*::]*/: { n:"CURSORW12" },
+		/*::[*/0x0032/*::]*/: { n:"WINDOW" },
 		/*::[*/0x0033/*::]*/: { n:"STRING", f:parse_LABEL },
-		/*::[*/0x0037/*::]*/: { n:"PASSWORD", f:parsenoop },
-		/*::[*/0x0038/*::]*/: { n:"LOCKED", f:parsenoop },
-		/*::[*/0x003C/*::]*/: { n:"QUERY", f:parsenoop },
-		/*::[*/0x003D/*::]*/: { n:"QUERYNAME", f:parsenoop },
-		/*::[*/0x003E/*::]*/: { n:"PRINT", f:parsenoop },
-		/*::[*/0x003F/*::]*/: { n:"PRINTNAME", f:parsenoop },
-		/*::[*/0x0040/*::]*/: { n:"GRAPH2", f:parsenoop },
-		/*::[*/0x0041/*::]*/: { n:"GRAPHNAME", f:parsenoop },
-		/*::[*/0x0042/*::]*/: { n:"ZOOM", f:parsenoop },
-		/*::[*/0x0043/*::]*/: { n:"SYMSPLIT", f:parsenoop },
-		/*::[*/0x0044/*::]*/: { n:"NSROWS", f:parsenoop },
-		/*::[*/0x0045/*::]*/: { n:"NSCOLS", f:parsenoop },
-		/*::[*/0x0046/*::]*/: { n:"RULER", f:parsenoop },
-		/*::[*/0x0047/*::]*/: { n:"NNAME", f:parsenoop },
-		/*::[*/0x0048/*::]*/: { n:"ACOMM", f:parsenoop },
-		/*::[*/0x0049/*::]*/: { n:"AMACRO", f:parsenoop },
-		/*::[*/0x004A/*::]*/: { n:"PARSE", f:parsenoop },
+		/*::[*/0x0037/*::]*/: { n:"PASSWORD" },
+		/*::[*/0x0038/*::]*/: { n:"LOCKED" },
+		/*::[*/0x003C/*::]*/: { n:"QUERY" },
+		/*::[*/0x003D/*::]*/: { n:"QUERYNAME" },
+		/*::[*/0x003E/*::]*/: { n:"PRINT" },
+		/*::[*/0x003F/*::]*/: { n:"PRINTNAME" },
+		/*::[*/0x0040/*::]*/: { n:"GRAPH2" },
+		/*::[*/0x0041/*::]*/: { n:"GRAPHNAME" },
+		/*::[*/0x0042/*::]*/: { n:"ZOOM" },
+		/*::[*/0x0043/*::]*/: { n:"SYMSPLIT" },
+		/*::[*/0x0044/*::]*/: { n:"NSROWS" },
+		/*::[*/0x0045/*::]*/: { n:"NSCOLS" },
+		/*::[*/0x0046/*::]*/: { n:"RULER" },
+		/*::[*/0x0047/*::]*/: { n:"NNAME" },
+		/*::[*/0x0048/*::]*/: { n:"ACOMM" },
+		/*::[*/0x0049/*::]*/: { n:"AMACRO" },
+		/*::[*/0x004A/*::]*/: { n:"PARSE" },
 		/*::[*/0x00FF/*::]*/: { n:"", f:parsenoop }
 	};
 
 	var WK3Enum = {
-		/*::[*/0x0000/*::]*/: { n:"BOF", f:parsenoop },
-		/*::[*/0x0001/*::]*/: { n:"EOF", f:parsenoop },
-		/*::[*/0x0003/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0004/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0005/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0006/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0007/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0009/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x000a/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x000b/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x000c/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x000e/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x000f/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0010/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0011/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0012/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0013/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0015/*::]*/: { n:"??", f:parsenoop },
+		/*::[*/0x0000/*::]*/: { n:"BOF" },
+		/*::[*/0x0001/*::]*/: { n:"EOF" },
+		/*::[*/0x0003/*::]*/: { n:"??" },
+		/*::[*/0x0004/*::]*/: { n:"??" },
+		/*::[*/0x0005/*::]*/: { n:"??" },
+		/*::[*/0x0006/*::]*/: { n:"??" },
+		/*::[*/0x0007/*::]*/: { n:"??" },
+		/*::[*/0x0009/*::]*/: { n:"??" },
+		/*::[*/0x000a/*::]*/: { n:"??" },
+		/*::[*/0x000b/*::]*/: { n:"??" },
+		/*::[*/0x000c/*::]*/: { n:"??" },
+		/*::[*/0x000e/*::]*/: { n:"??" },
+		/*::[*/0x000f/*::]*/: { n:"??" },
+		/*::[*/0x0010/*::]*/: { n:"??" },
+		/*::[*/0x0011/*::]*/: { n:"??" },
+		/*::[*/0x0012/*::]*/: { n:"??" },
+		/*::[*/0x0013/*::]*/: { n:"??" },
+		/*::[*/0x0015/*::]*/: { n:"??" },
 		/*::[*/0x0016/*::]*/: { n:"LABEL16", f:parse_LABEL_16},
 		/*::[*/0x0017/*::]*/: { n:"NUMBER17", f:parse_NUMBER_17 },
 		/*::[*/0x0018/*::]*/: { n:"NUMBER18", f:parse_NUMBER_18 },
 		/*::[*/0x0019/*::]*/: { n:"FORMULA19", f:parse_FORMULA_19},
-		/*::[*/0x001a/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x001b/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x001c/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x001d/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x001e/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x001f/*::]*/: { n:"??", f:parsenoop },
-		/*::[*/0x0021/*::]*/: { n:"??", f:parsenoop },
+		/*::[*/0x001a/*::]*/: { n:"??" },
+		/*::[*/0x001b/*::]*/: { n:"??" },
+		/*::[*/0x001c/*::]*/: { n:"??" },
+		/*::[*/0x001d/*::]*/: { n:"??" },
+		/*::[*/0x001e/*::]*/: { n:"??" },
+		/*::[*/0x001f/*::]*/: { n:"??" },
+		/*::[*/0x0021/*::]*/: { n:"??" },
 		/*::[*/0x0025/*::]*/: { n:"NUMBER25", f:parse_NUMBER_25 },
 		/*::[*/0x0027/*::]*/: { n:"NUMBER27", f:parse_NUMBER_27 },
 		/*::[*/0x0028/*::]*/: { n:"FORMULA28", f:parse_FORMULA_28 },

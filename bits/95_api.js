@@ -7,12 +7,21 @@ function get_default(x/*:any*/, y/*:any*/, z/*:any*/)/*:any*/ { return x[y] != n
 /* get cell, creating a stub if necessary */
 function ws_get_cell_stub(ws/*:Worksheet*/, R, C/*:?number*/)/*:Cell*/ {
 	/* A1 cell address */
-	if(typeof R == "string") return ws[R] || (ws[R] = {t:'z'});
+	if(typeof R == "string") {
+		/* dense */
+		if(Array.isArray(ws)) {
+			var RC = decode_cell(R);
+			if(!ws[RC.r]) ws[RC.r] = [];
+			return ws[RC.r][RC.c] || (ws[RC.r][RC.c] = {t:'z'});
+		}
+		return ws[R] || (ws[R] = {t:'z'});
+	}
 	/* cell address object */
 	if(typeof R != "number") return ws_get_cell_stub(ws, encode_cell(R));
 	/* R and C are 0-based indices */
 	return ws_get_cell_stub(ws, encode_cell({r:R,c:C||0}));
 }
+utils.sheet_get_cell = ws_get_cell_stub;
 
 /* find sheet index for given name / validate index */
 function wb_sheet_idx(wb/*:Workbook*/, sh/*:number|string*/) {
@@ -33,8 +42,8 @@ utils.book_new = function()/*:Workbook*/ {
 
 /* add a worksheet to the end of a given workbook */
 utils.book_append_sheet = function(wb/*:Workbook*/, ws/*:Worksheet*/, name/*:?string*/) {
-	if(!name) for(var i = 1; i <= 0xFFFF; ++i) if(wb.SheetNames.indexOf(name = "Sheet" + i) == -1) break;
-	if(!name) throw new Error("Too many worksheets");
+	if(!name) for(var i = 1; i <= 0xFFFF; ++i, name = undefined) if(wb.SheetNames.indexOf(name = "Sheet" + i) == -1) break;
+	if(!name || wb.SheetNames.length >= 0xFFFF) throw new Error("Too many worksheets");
 	check_ws_name(name);
 	if(wb.SheetNames.indexOf(name) >= 0) throw new Error("Worksheet with name |" + name + "| already exists!");
 
@@ -80,6 +89,7 @@ utils.cell_set_hyperlink = function(cell/*:Cell*/, target/*:string*/, tooltip/*:
 	}
 	return cell;
 };
+utils.cell_set_internal_link = function(cell/*:Cell*/, range/*:string*/, tooltip/*:?string*/) { return utils.cell_set_hyperlink(cell, "#" + range, tooltip); };
 
 /* add to cell comments */
 utils.cell_add_comment = function(cell/*:Cell*/, text/*:string*/, author/*:?string*/) {

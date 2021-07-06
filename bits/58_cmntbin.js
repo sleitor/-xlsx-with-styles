@@ -1,5 +1,5 @@
 /* [MS-XLSB] 2.4.28 BrtBeginComment */
-function parse_BrtBeginComment(data, length) {
+function parse_BrtBeginComment(data) {
 	var out = {};
 	out.iauthor = data.read_shift(4);
 	var rfx = parse_UncheckedRfX(data, 16);
@@ -19,13 +19,14 @@ function write_BrtBeginComment(data, o) {
 	return o;
 }
 
-/* [MS-XLSB] 2.4.324 BrtCommentAuthor */
+/* [MS-XLSB] 2.4.327 BrtCommentAuthor */
 var parse_BrtCommentAuthor = parse_XLWideString;
+function write_BrtCommentAuthor(data) { return write_XLWideString(data.slice(0, 54)); }
 
 /* [MS-XLSB] 2.1.7.8 Comments */
-function parse_comments_bin(data, opts) {
-	var out = [];
-	var authors = [];
+function parse_comments_bin(data, opts)/*:Array<RawComment>*/ {
+	var out/*:Array<RawComment>*/ = [];
+	var authors/*:Array<string>*/ = [];
 	var c = {};
 	var pass = false;
 	recordhopper(data, function hopper_cmnt(val, R_n, RT) {
@@ -38,12 +39,13 @@ function parse_comments_bin(data, opts) {
 				c.t = val.t; c.h = val.h; c.r = val.r; break;
 			case 0x027C: /* 'BrtEndComment' */
 				c.author = authors[c.iauthor];
-				delete c.iauthor;
-				if(opts.sheetRows && opts.sheetRows <= c.rfx.r) break;
+				delete (c/*:any*/).iauthor;
+				if(opts.sheetRows && c.rfx && opts.sheetRows <= c.rfx.r) break;
 				if(!c.t) c.t = "";
 				delete c.rfx; out.push(c); break;
 
-			/* case 'BrtUid': */
+			case 0x0C00: /* 'BrtUid' */
+				break;
 
 			case 0x0023: /* 'BrtFRTBegin' */
 				pass = true; break;
@@ -62,35 +64,34 @@ function parse_comments_bin(data, opts) {
 	return out;
 }
 
-function write_comments_bin(data, opts) {
+function write_comments_bin(data/*::, opts*/) {
 	var ba = buf_array();
-	var iauthor = [];
+	var iauthor/*:Array<string>*/ = [];
 	write_record(ba, "BrtBeginComments");
-	{ /* COMMENTAUTHORS */
-		write_record(ba, "BrtBeginCommentAuthors");
-		data.forEach(function(comment) {
-			comment[1].forEach(function(c) {
-				if(iauthor.indexOf(c.a) > -1) return;
-				iauthor.push(c.a.substr(0,54));
-				write_record(ba, "BrtCommentAuthor", write_XLWideString(c.a.substr(0, 54)));
-			});
+
+	write_record(ba, "BrtBeginCommentAuthors");
+	data.forEach(function(comment) {
+		comment[1].forEach(function(c) {
+			if(iauthor.indexOf(c.a) > -1) return;
+			iauthor.push(c.a.slice(0,54));
+			write_record(ba, "BrtCommentAuthor", write_BrtCommentAuthor(c.a));
 		});
-		write_record(ba, "BrtEndCommentAuthors");
-	}
-	{ /* COMMENTLIST */
-		write_record(ba, "BrtBeginCommentList");
-		data.forEach(function(comment) {
-			comment[1].forEach(function(c) {
-				c.iauthor = iauthor.indexOf(c.a);
-				var range = {s:decode_cell(comment[0]),e:decode_cell(comment[0])};
-				write_record(ba, "BrtBeginComment", write_BrtBeginComment([range, c]));
-				if(c.t && c.t.length > 0) write_record(ba, "BrtCommentText", write_BrtCommentText(c));
-				write_record(ba, "BrtEndComment");
-				delete c.iauthor;
-			});
+	});
+	write_record(ba, "BrtEndCommentAuthors");
+
+	write_record(ba, "BrtBeginCommentList");
+	data.forEach(function(comment) {
+		comment[1].forEach(function(c) {
+			c.iauthor = iauthor.indexOf(c.a);
+			var range = {s:decode_cell(comment[0]),e:decode_cell(comment[0])};
+			write_record(ba, "BrtBeginComment", write_BrtBeginComment([range, c]));
+			if(c.t && c.t.length > 0) write_record(ba, "BrtCommentText", write_BrtCommentText(c));
+			write_record(ba, "BrtEndComment");
+			delete c.iauthor;
 		});
-		write_record(ba, "BrtEndCommentList");
-	}
+	});
+	write_record(ba, "BrtEndCommentList");
+
 	write_record(ba, "BrtEndComments");
 	return ba.end();
 }

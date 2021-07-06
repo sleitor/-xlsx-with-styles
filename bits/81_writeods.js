@@ -1,19 +1,41 @@
 /* OpenDocument */
 var write_styles_ods/*:{(wb:any, opts:any):string}*/ = (function() {
-	var payload = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><office:document-styles xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" office:version="1.2"></office:document-styles>';
-	return function wso(wb, opts) {
-		return payload;
+	var payload = '<office:document-styles ' + wxt_helper({
+		'xmlns:office':   "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+		'xmlns:table':    "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
+		'xmlns:style':    "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
+		'xmlns:text':     "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+		'xmlns:draw':     "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
+		'xmlns:fo':       "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+		'xmlns:xlink':    "http://www.w3.org/1999/xlink",
+		'xmlns:dc':       "http://purl.org/dc/elements/1.1/",
+		'xmlns:number':   "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
+		'xmlns:svg':      "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0",
+		'xmlns:of':       "urn:oasis:names:tc:opendocument:xmlns:of:1.2",
+		'office:version': "1.2"
+	}) + '></office:document-styles>';
+	return function wso(/*::wb, opts*/) {
+		return XML_HEADER + payload;
 	};
 })();
 var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
+	/* 6.1.2 White Space Characters */
+	var write_text_p = function(text/*:string*/)/*:string*/ {
+		return escapexml(text)
+			.replace(/  +/g, function($$){return '<text:s text:c="'+$$.length+'"/>';})
+			.replace(/\t/g, "<text:tab/>")
+			.replace(/\n/g, "<text:line-break/>")
+			.replace(/^ /, "<text:s/>").replace(/ $/, "<text:s/>");
+	};
+
 	var null_cell_xml = '          <table:table-cell />\n';
 	var covered_cell_xml = '          <table:covered-table-cell/>\n';
-	var write_ws = function(ws, wb, i/*:number*/, opts)/*:string*/ {
+	var write_ws = function(ws, wb/*:Workbook*/, i/*:number*//*::, opts*/)/*:string*/ {
 		/* Section 9 Tables */
-		var o = [];
-		o.push('      <table:table table:name="' + escapexml(wb.SheetNames[i]) + '">\n');
+		var o/*:Array<string>*/ = [];
+		o.push('      <table:table table:name="' + escapexml(wb.SheetNames[i]) + '" table:style-name="ta1">\n');
 		var R=0,C=0, range = decode_range(ws['!ref']);
-		var marr = ws['!merges'] || [], mi = 0;
+		var marr/*:Array<Range>*/ = ws['!merges'] || [], mi = 0;
 		var dense = Array.isArray(ws);
 		for(R = 0; R < range.s.r; ++R) o.push('        <table:table-row></table:table-row>\n');
 		for(; R <= range.e.r; ++R) {
@@ -36,7 +58,7 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 				if(cell && cell.f) {
 					ct['table:formula'] = escapexml(csf_to_ods_formula(cell.f));
 					if(cell.F) {
-						if(cell.F.substr(0, ref.length) == ref) {
+						if(cell.F.slice(0, ref.length) == ref) {
 							var _Fref = decode_range(cell.F);
 							ct['table:number-matrix-columns-spanned'] = (_Fref.e.c - _Fref.s.c + 1);
 							ct['table:number-matrix-rows-spanned'] =    (_Fref.e.r - _Fref.s.r + 1);
@@ -56,7 +78,7 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 						ct['office:value'] = (cell.v||0);
 						break;
 					case 's': case 'str':
-						textp = escapexml(cell.v);
+						textp = cell.v == null ? "" : cell.v;
 						ct['office:value-type'] = "string";
 						break;
 					case 'd':
@@ -68,7 +90,12 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 					//case 'e':
 					default: o.push(null_cell_xml); continue;
 				}
-				o.push('          ' + writextag('table:table-cell', writextag('text:p', textp, {}), ct) + '\n');
+				var text_p = write_text_p(textp);
+				if(cell.l && cell.l.Target) {
+					var _tgt = cell.l.Target; _tgt = _tgt.charAt(0) == "#" ? "#" + csf_to_ods_3D(_tgt.slice(1)) : _tgt;
+					text_p = writextag('text:a', text_p, {'xlink:href': _tgt});
+				}
+				o.push('          ' + writextag('table:table-cell', writextag('text:p', text_p, {}), ct) + '\n');
 			}
 			o.push('        </table:table-row>\n');
 		}
@@ -78,6 +105,7 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 
 	var write_automatic_styles_ods = function(o/*:Array<string>*/) {
 		o.push(' <office:automatic-styles>\n');
+
 		o.push('  <number:date-style style:name="N37" number:automatic-order="true">\n');
 		o.push('   <number:month number:style="long"/>\n');
 		o.push('   <number:text>/</number:text>\n');
@@ -85,7 +113,17 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 		o.push('   <number:text>/</number:text>\n');
 		o.push('   <number:year/>\n');
 		o.push('  </number:date-style>\n');
+
+		/* table */
+		o.push('  <style:style style:name="ta1" style:family="table">\n'); // style:master-page-name="mp1">\n');
+		o.push('   <style:table-properties table:display="true" style:writing-mode="lr-tb"/>\n');
+		o.push('  </style:style>\n');
+
+		/* table cells, text */
 		o.push('  <style:style style:name="ce1" style:family="table-cell" style:parent-style-name="Default" style:data-style-name="N37"/>\n');
+
+		/* page-layout */
+
 		o.push(' </office:automatic-styles>\n');
 	};
 
@@ -133,8 +171,8 @@ var write_content_ods/*:{(wb:any, opts:any):string}*/ = (function() {
 		});
 
 		var fods = wxt_helper({
-			'xmlns:config':"urn:oasis:names:tc:opendocument:xmlns:config:1.0",
-			'office:mimetype':"application/vnd.oasis.opendocument.spreadsheet"
+			'xmlns:config':    "urn:oasis:names:tc:opendocument:xmlns:config:1.0",
+			'office:mimetype': "application/vnd.oasis.opendocument.spreadsheet"
 		});
 
 		if(opts.bookType == "fods") o.push('<office:document' + attr + fods + '>\n');
@@ -155,42 +193,42 @@ function write_ods(wb/*:any*/, opts/*:any*/) {
 	if(opts.bookType == "fods") return write_content_ods(wb, opts);
 
 	/*:: if(!jszip) throw new Error("JSZip is not available"); */
-	var zip = new jszip();
+	var zip = zip_new();
 	var f = "";
 
 	var manifest/*:Array<Array<string> >*/ = [];
-	var rdf = [];
+	var rdf/*:Array<[string, string]>*/ = [];
 
-	/* 3:3.3 and 2:2.2.4 */
+	/* Part 3 Section 3.3 MIME Media Type */
 	f = "mimetype";
-	zip.file(f, "application/vnd.oasis.opendocument.spreadsheet");
+	zip_add_file(zip, f, "application/vnd.oasis.opendocument.spreadsheet");
 
 	/* Part 1 Section 2.2 Documents */
 	f = "content.xml";
-	zip.file(f, write_content_ods(wb, opts));
+	zip_add_file(zip, f, write_content_ods(wb, opts));
 	manifest.push([f, "text/xml"]);
 	rdf.push([f, "ContentFile"]);
 
 	/* TODO: these are hard-coded styles to satiate excel */
 	f = "styles.xml";
-	zip.file(f, write_styles_ods(wb, opts));
+	zip_add_file(zip, f, write_styles_ods(wb, opts));
 	manifest.push([f, "text/xml"]);
 	rdf.push([f, "StylesFile"]);
 
-	/* Part 3 Section 6 Metadata Manifest File */
-	f = "manifest.rdf";
-	zip.file(f, write_rdf(rdf, opts));
-	manifest.push([f, "application/rdf+xml"]);
-
 	/* TODO: this is hard-coded to satiate excel */
 	f = "meta.xml";
-	zip.file(f, write_meta_ods(wb, opts));
+	zip_add_file(zip, f, write_meta_ods(/*::wb, opts*/));
 	manifest.push([f, "text/xml"]);
 	rdf.push([f, "MetadataFile"]);
 
+	/* Part 3 Section 6 Metadata Manifest File */
+	f = "manifest.rdf";
+	zip_add_file(zip, f, write_rdf(rdf/*, opts*/));
+	manifest.push([f, "application/rdf+xml"]);
+
 	/* Part 3 Section 4 Manifest File */
 	f = "META-INF/manifest.xml";
-	zip.file(f, write_manifest(manifest, opts));
+	zip_add_file(zip, f, write_manifest(manifest/*, opts*/));
 
 	return zip;
 }

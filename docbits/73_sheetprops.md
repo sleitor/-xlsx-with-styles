@@ -2,13 +2,13 @@
 
 Excel enables hiding sheets in the lower tab bar.  The sheet data is stored in
 the file but the UI does not readily make it available.  Standard hidden sheets
-are revealed in the unhide menu.  Excel also has "very hidden" sheets which
+are revealed in the "Unhide" menu.  Excel also has "very hidden" sheets which
 cannot be revealed in the menu.  It is only accessible in the VB Editor!
 
 The visibility setting is stored in the `Hidden` property of sheet props array.
 
 <details>
-	<summary><b>More details</b> (click to show)</summary>
+  <summary><b>More details</b> (click to show)</summary>
 
 | Value | Definition  |
 |:-----:|:------------|
@@ -16,7 +16,7 @@ The visibility setting is stored in the `Hidden` property of sheet props array.
 |   1   | Hidden      |
 |   2   | Very Hidden |
 
-With <https://rawgit.com/SheetJS/test_files/master/sheet_visibility.xlsx>:
+With <https://rawgit.com/SheetJS/test_files/HEAD/sheet_visibility.xlsx>:
 
 ```js
 > wb.Workbook.Sheets.map(function(x) { return [x.name, x.Hidden] })

@@ -1,5 +1,12 @@
 RELS.THEME = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme";
 
+/* Even though theme layout is dk1 lt1 dk2 lt2, true order is lt1 dk1 lt2 dk2 */
+var XLSXThemeClrScheme = [
+	'</a:lt1>', '</a:dk1>', '</a:lt2>', '</a:dk2>',
+	'</a:accent1>', '</a:accent2>', '</a:accent3>',
+	'</a:accent4>', '</a:accent5>', '</a:accent6>',
+	'</a:hlink>', '</a:folHlink>'
+];
 /* 20.1.6.2 clrScheme CT_ColorScheme */
 function parse_clrScheme(t, themes, opts) {
 	themes.themeElements.clrScheme = [];
@@ -42,11 +49,11 @@ function parse_clrScheme(t, themes, opts) {
 			case '<a:accent6>': case '</a:accent6>':
 			case '<a:hlink>': case '</a:hlink>':
 			case '<a:folHlink>': case '</a:folHlink>':
-				if (y[0][1] === '/') {
-					themes.themeElements.clrScheme.push(color);
+				if (y[0].charAt(1) === '/') {
+					themes.themeElements.clrScheme[XLSXThemeClrScheme.indexOf(y[0])] = color;
 					color = {};
 				} else {
-					color.name = y[0].substring(3, y[0].length - 1);
+					color.name = y[0].slice(3, y[0].length - 1);
 				}
 				break;
 
@@ -56,14 +63,14 @@ function parse_clrScheme(t, themes, opts) {
 }
 
 /* 20.1.4.1.18 fontScheme CT_FontScheme */
-function parse_fontScheme(t, themes, opts) { }
+function parse_fontScheme(/*::t, themes, opts*/) { }
 
 /* 20.1.4.1.15 fmtScheme CT_StyleMatrix */
-function parse_fmtScheme(t, themes, opts) { }
+function parse_fmtScheme(/*::t, themes, opts*/) { }
 
-var clrsregex = /<a:clrScheme([^>]*)>[^\u2603]*<\/a:clrScheme>/;
-var fntsregex = /<a:fontScheme([^>]*)>[^\u2603]*<\/a:fontScheme>/;
-var fmtsregex = /<a:fmtScheme([^>]*)>[^\u2603]*<\/a:fmtScheme>/;
+var clrsregex = /<a:clrScheme([^>]*)>[\s\S]*<\/a:clrScheme>/;
+var fntsregex = /<a:fontScheme([^>]*)>[\s\S]*<\/a:fontScheme>/;
+var fmtsregex = /<a:fmtScheme([^>]*)>[\s\S]*<\/a:fmtScheme>/;
 
 /* 20.1.6.10 themeElements CT_BaseStyles */
 function parse_themeElements(data, themes, opts) {
@@ -84,7 +91,7 @@ function parse_themeElements(data, themes, opts) {
 	});
 }
 
-var themeltregex = /<a:themeElements([^>]*)>[^\u2603]*<\/a:themeElements>/;
+var themeltregex = /<a:themeElements([^>]*)>[\s\S]*<\/a:themeElements>/;
 
 /* 14.2.7 Theme Part */
 function parse_theme_xml(data/*:string*/, opts) {
@@ -97,12 +104,13 @@ function parse_theme_xml(data/*:string*/, opts) {
 	/* themeElements CT_BaseStyles */
 	if(!(t=data.match(themeltregex))) throw new Error('themeElements not found in theme');
 	parse_themeElements(t[0], themes, opts);
-
+	themes.raw = data;
 	return themes;
 }
 
 function write_theme(Themes, opts)/*:string*/ {
 	if(opts && opts.themeXLSX) return opts.themeXLSX;
+	if(Themes && typeof Themes.raw == "string") return Themes.raw;
 	var o = [XML_HEADER];
 	o[o.length] = '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office Theme">';
 	o[o.length] =  '<a:themeElements>';

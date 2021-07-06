@@ -39,7 +39,7 @@ function xlml_set_prop(Props, tag/*:string*/, val) {
 }
 
 function xlml_write_docprops(Props, opts) {
-	var o = [];
+	var o/*:Array<string>*/ = [];
 	keys(XLMLDocPropsMap).map(function(m) {
 		for(var i = 0; i < CORE_PROPS.length; ++i) if(CORE_PROPS[i][1] == m) return CORE_PROPS[i];
 		for(i = 0; i < EXT_PROPS.length; ++i) if(EXT_PROPS[i][1] == m) return EXT_PROPS[i];
@@ -57,13 +57,13 @@ function xlml_write_docprops(Props, opts) {
 	});
 	return writextag('DocumentProperties', o.join(""), {xmlns:XLMLNS.o });
 }
-function xlml_write_custprops(Props, Custprops, opts) {
+function xlml_write_custprops(Props, Custprops/*::, opts*/) {
 	var BLACKLIST = ["Worksheets","SheetNames"];
 	var T = 'CustomDocumentProperties';
-	var o = [];
+	var o/*:Array<string>*/ = [];
 	if(Props) keys(Props).forEach(function(k) {
 		/*:: if(!Props) return; */
-		if(!Props.hasOwnProperty(k)) return;
+		if(!Object.prototype.hasOwnProperty.call(Props, k)) return;
 		for(var i = 0; i < CORE_PROPS.length; ++i) if(k == CORE_PROPS[i][1]) return;
 		for(i = 0; i < EXT_PROPS.length; ++i) if(k == EXT_PROPS[i][1]) return;
 		for(i = 0; i < BLACKLIST.length; ++i) if(k == BLACKLIST[i]) return;
@@ -77,7 +77,8 @@ function xlml_write_custprops(Props, Custprops, opts) {
 	});
 	if(Custprops) keys(Custprops).forEach(function(k) {
 		/*:: if(!Custprops) return; */
-		if(!Custprops.hasOwnProperty(k)) return;
+		if(!Object.prototype.hasOwnProperty.call(Custprops, k)) return;
+		if(Props && Object.prototype.hasOwnProperty.call(Props, k)) return;
 		var m = Custprops[k];
 		var t = "string";
 		if(typeof m == 'number') { t = "float"; m = String(m); }

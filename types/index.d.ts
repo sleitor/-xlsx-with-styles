@@ -1,23 +1,39 @@
 /* index.d.ts (C) 2015-present SheetJS and contributors */
 // TypeScript Version: 2.2
+import * as CFB from "cfb";
+import * as SSF from "ssf";
 
 /** Version string */
 export const version: string;
 
-/** Attempts to read filename and parse */
+/** SSF Formatter Library */
+export { SSF };
+
+/** CFB Library */
+export { CFB };
+
+/** NODE ONLY! Attempts to read filename and parse */
 export function readFile(filename: string, opts?: ParsingOptions): WorkBook;
 /** Attempts to parse data */
 export function read(data: any, opts?: ParsingOptions): WorkBook;
-/** NODE ONLY! Attempts to write workbook data to filename */
+/** Attempts to write or download workbook data to file */
 export function writeFile(data: WorkBook, filename: string, opts?: WritingOptions): any;
 /** Attempts to write the workbook data */
 export function write(data: WorkBook, opts?: WritingOptions): any;
 
-export const utils: Utils;
+/** Utility Functions */
+export const utils: XLSX$Utils;
+/** Stream Utility Functions */
 export const stream: StreamUtils;
 
 /** Number Format (either a string or an index to the format table) */
 export type NumberFormat = string | number;
+
+/** Worksheet specifier (string, number, worksheet) */
+export type WSSpec = string | number | WorkSheet;
+
+/** Range specifier (string or range or cell), single-cell lifted to range */
+export type RangeSpec = string | Range | CellAddress;
 
 /** Basic File Properties */
 export interface Properties {
@@ -71,17 +87,51 @@ export interface CommonOptions {
     WTF?: boolean;
 
     /**
+     * When reading a file with VBA macros, expose CFB blob to `vbaraw` field
+     * When writing BIFF8/XLSB/XLSM, reseat `vbaraw` and export to file
+     * @default false
+     */
+    bookVBA?: boolean;
+
+    /**
      * When reading a file, store dates as type d (default is n)
      * When writing XLSX/XLSM file, use native date (default uses date codes)
      * @default false
      */
     cellDates?: boolean;
+
+    /**
+     * Create cell objects for stub cells
+     * @default false
+     */
+    sheetStubs?: boolean;
+
+    /**
+     * When reading a file, save style/theme info to the .s field
+     * When writing a file, export style/theme info
+     * @default false
+     */
+    cellStyles?: boolean;
+
+    /**
+     * If defined and file is encrypted, use password
+     * @default ''
+     */
+    password?: string;
+}
+
+export interface DateNFOption {
+    /** Use specified date format */
+    dateNF?: NumberFormat;
 }
 
 /** Options for read and readFile */
 export interface ParsingOptions extends CommonOptions {
     /** Input data encoding */
-    type?: 'base64' | 'binary' | 'buffer' | 'file' | 'array';
+    type?: 'base64' | 'binary' | 'buffer' | 'file' | 'array' | 'string';
+
+    /** Default codepage */
+    codepage?: number;
 
     /**
      * Save formulae to the .f field
@@ -102,12 +152,6 @@ export interface ParsingOptions extends CommonOptions {
     cellNF?: boolean;
 
     /**
-     * Save style/theme info to the .s field
-     * @default false
-     */
-    cellStyles?: boolean;
-
-    /**
      * Generate formatted text to the .w field
      * @default true
      */
@@ -115,12 +159,6 @@ export interface ParsingOptions extends CommonOptions {
 
     /** Override default date format (code 14) */
     dateNF?: string;
-
-    /**
-     * Create cell objects for stub cells
-     * @default false
-     */
-    sheetStubs?: boolean;
 
     /**
      * If >0, read the first sheetRows rows
@@ -152,23 +190,19 @@ export interface ParsingOptions extends CommonOptions {
      */
     bookSheets?: boolean;
 
-    /**
-     * If true, expose vbaProject.bin to vbaraw field
-     * @default false
-     */
-    bookVBA?: boolean;
+    /** If specified, only parse the specified sheets or sheet names */
+    sheets?: number | string | Array<number | string>;
 
-    /**
-     * If defined and file is encrypted, use password
-     * @default ''
-     */
-    password?: string;
+    /** If true, plaintext parsing will not parse values */
+    raw?: boolean;
+
+    dense?: boolean;
 }
 
 /** Options for write and writeFile */
 export interface WritingOptions extends CommonOptions {
     /** Output data encoding */
-    type?: 'base64' | 'binary' | 'buffer' | 'file';
+    type?: 'base64' | 'binary' | 'buffer' | 'file' | 'array' | 'string';
 
     /**
      * Generate Shared String Table
@@ -194,6 +228,12 @@ export interface WritingOptions extends CommonOptions {
      */
     compression?: boolean;
 
+    /**
+     * Suppress "number stored as text" errors in generated files
+     * @default true
+     */
+    ignoreEC?: boolean;
+
     /** Override workbook properties on save */
     Props?: Properties;
 }
@@ -209,24 +249,40 @@ export interface WorkBook {
     /** Ordered list of the sheet names in the workbook */
     SheetNames: string[];
 
-    /**
-     * an object storing the standard properties. wb.Custprops stores custom properties.
-     * Since the XLS standard properties deviate from the XLSX standard, XLS parsing stores core properties in both places.
-     */
+    /** Standard workbook Properties */
     Props?: FullProperties;
 
+    /** Custom workbook Properties */
+    Custprops?: object;
+
     Workbook?: WBProps;
+
+    vbaraw?: any;
 }
 
 export interface SheetProps {
+    /** Name of Sheet */
+    name?: string;
+
     /** Sheet Visibility (0=Visible 1=Hidden 2=VeryHidden) */
     Hidden?: 0 | 1 | 2;
+
+    /** Name of Document Module in associated VBA Project */
+    CodeName?: string;
 }
 
+/** Defined Name Object */
 export interface DefinedName {
+    /** Name */
     Name: string;
+
+    /** Reference */
     Ref: string;
+
+    /** Scope (undefined for workbook scope) */
     Sheet?: number;
+
+    /** Name comment */
     Comment?: string;
 }
 
@@ -237,8 +293,33 @@ export interface WBProps {
 
     /** Defined Names */
     Names?: DefinedName[];
+
+    /** Workbook Views */
+    Views?: WBView[];
+
+    /** Other Workbook Properties */
+    WBProps?: WorkbookProperties;
 }
 
+/** Workbook View */
+export interface WBView {
+    /** Right-to-left mode */
+    RTL?: boolean;
+}
+
+/** Other Workbook Properties */
+export interface WorkbookProperties {
+    /** Worksheet Epoch (1904 if true, 1900 if false) */
+    date1904?: boolean;
+
+    /** Warn or strip personally identifying info on save */
+    filterPrivacy?: boolean;
+
+    /** Name of Document Module in associated VBA Project */
+    CodeName?: string;
+}
+
+/** Column Properties Object */
 export interface ColInfo {
     /* --- visibility --- */
 
@@ -259,6 +340,8 @@ export interface ColInfo {
     /** Excel's "Max Digit Width" unit, always integral */
     MDW?: number;
 }
+
+/** Row Properties Object */
 export interface RowInfo {
     /* --- visibility --- */
 
@@ -272,6 +355,9 @@ export interface RowInfo {
 
     /** height in points */
     hpt?: number;
+
+    /** outline / group level */
+    level?: number;
 }
 
 /**
@@ -400,27 +486,43 @@ export interface AutoFilterInfo {
     /** Range of the AutoFilter table */
     ref: string;
 }
+
 export type WSKeys = SheetKeys | ColInfo[] | RowInfo[] | Range[] | ProtectInfo | AutoFilterInfo;
 
-/**
- * object representing the worksheet
- */
+/** Worksheet Object */
 export interface WorkSheet extends Sheet {
     /**
      * Indexing with a cell address string maps to a cell object
      * Special keys start with '!'
      */
     [cell: string]: CellObject | WSKeys | any;
+
+    /** Column Info */
     '!cols'?: ColInfo[];
+
+    /** Row Info */
     '!rows'?: RowInfo[];
+
+    /** Merge Ranges */
     '!merges'?: Range[];
+
+    /** Worksheet Protection info */
     '!protect'?: ProtectInfo;
+
+    /** AutoFilter info */
     '!autofilter'?: AutoFilterInfo;
 }
 
 /**
+ * Worksheet Object with CellObject type
+ *
+ * The normal Worksheet type uses indexer of type `any` -- this enforces CellObject
+ */
+export interface StrictWS { [addr: string]: CellObject; }
+
+/**
  * The Excel data type for a cell.
- * b Boolean, n Number, e error, s String, d Date
+ * b Boolean, n Number, e error, s String, d Date, z Stub
  */
 export type ExcelDataType = 'b' | 'n' | 'e' | 's' | 'd' | 'z';
 
@@ -428,8 +530,9 @@ export type ExcelDataType = 'b' | 'n' | 'e' | 's' | 'd' | 'z';
  * Type of generated workbook
  * @default 'xlsx'
  */
-export type BookType = 'xlsx' | 'xlsm' | 'xlsb' | 'biff2' | 'xlml' | 'ods' | 'fods' | 'csv' | 'txt' | 'sylk' | 'html' | 'dif' | 'prn';
+export type BookType = 'xlsx' | 'xlsm' | 'xlsb' | 'xls' | 'xla' | 'biff8' | 'biff5' | 'biff2' | 'xlml' | 'ods' | 'fods' | 'csv' | 'txt' | 'sylk' | 'html' | 'dif' | 'rtf' | 'prn' | 'eth';
 
+/** Comment element */
 export interface Comment {
     /** Author of the comment block */
     a?: string;
@@ -438,6 +541,13 @@ export interface Comment {
     t: string;
 }
 
+/** Cell comments */
+export interface Comments extends Array<Comment> {
+    /** Hide comment by default */
+    hidden?: boolean;
+}
+
+/** Link object */
 export interface Hyperlink {
     /** Target of the link (HREF) */
     Target: string;
@@ -446,6 +556,7 @@ export interface Hyperlink {
     Tooltip?: string;
 }
 
+/** Worksheet Cell Object */
 export interface CellObject {
     /** The raw value of the cell.  Can be omitted if a formula is specified */
     v?: string | number | boolean | Date;
@@ -472,7 +583,7 @@ export interface CellObject {
     h?: string;
 
     /** Comments associated with the cell */
-    c?: Comment[];
+    c?: Comments;
 
     /** Number format string associated with the cell (if requested) */
     z?: NumberFormat;
@@ -481,9 +592,10 @@ export interface CellObject {
     l?: Hyperlink;
 
     /** The style/theme of the cell (if applicable) */
-    s?: object;
+    s?: any;
 }
 
+/** Simple Cell Address */
 export interface CellAddress {
     /** Column number */
     c: number;
@@ -491,9 +603,7 @@ export interface CellAddress {
     r: number;
 }
 
-/**
- * Range object (representing ranges like "A1:B2")
- */
+/** Range object (representing ranges like "A1:B2") */
 export interface Range {
     /** Starting cell */
     s: CellAddress;
@@ -501,44 +611,69 @@ export interface Range {
     e: CellAddress;
 }
 
-export interface Sheet2CSVOpts {
+export interface Sheet2CSVOpts extends DateNFOption {
     /** Field Separator ("delimiter") */
     FS?: string;
 
     /** Record Separator ("row separator") */
     RS?: string;
 
-    /** Use specified date format */
-    dateNF?: NumberFormat;
+    /** Remove trailing field separators in each record */
+    strip?: boolean;
+
+    /** Include blank lines in the CSV output */
+    blankrows?: boolean;
+
+    /** Skip hidden rows and columns in the CSV output */
+    skipHidden?: boolean;
+
+    /** Force quotes around fields */
+    forceQuotes?: boolean;
+
+    /** if true, return raw numbers; if false, return formatted numbers */
+    rawNumbers?: boolean;
+}
+
+export interface OriginOption {
+    /** Top-Left cell for operation (CellAddress or A1 string or row) */
+    origin?: number | string | CellAddress;
 }
 
 export interface Sheet2HTMLOpts {
+    /** TABLE element id attribute */
+    id?: string;
+
+    /** Add contenteditable to every cell */
     editable?: boolean;
+
+    /** Header HTML */
     header?: string;
+
+    /** Footer HTML */
     footer?: string;
 }
 
-export interface Sheet2JSONOpts {
-    /** Use specified date format */
-    dateNF?: NumberFormat;
-
+export interface Sheet2JSONOpts extends DateNFOption {
+    /** Output format */
     header?: "A"|number|string[];
 
+    /** Override worksheet range */
     range?: any;
 
+    /** Include or omit blank lines in the output */
+    blankrows?: boolean;
+
+    /** Default value for null/undefined values */
+    defval?: any;
+
+    /** if true, return raw data; if false, return formatted text */
     raw?: boolean;
+
+    /** if true, return raw numbers; if false, return formatted numbers */
+    rawNumbers?: boolean;
 }
 
-export interface AOA2SheetOpts {
-    /** Use specified date format */
-    dateNF?: NumberFormat;
-
-    /**
-     * Store dates as type d (default is n)
-     * @default false
-     */
-    cellDates?: boolean;
-
+export interface AOA2SheetOpts extends CommonOptions, DateNFOption {
     /**
      * Create cell objects for stub cells
      * @default false
@@ -546,20 +681,34 @@ export interface AOA2SheetOpts {
     sheetStubs?: boolean;
 }
 
-export interface JSON2SheetOpts {
-    /** Use specified date format */
-    dateNF?: NumberFormat;
+export interface SheetAOAOpts extends AOA2SheetOpts, OriginOption {}
+
+export interface JSON2SheetOpts extends CommonOptions, DateNFOption {
+    /** Use specified column order */
+    header?: string[];
+
+    /** Skip header row in generated sheet */
+    skipHeader?: boolean;
 }
 
-export interface Table2SheetOpts {
-    /** Use specified date format */
-    dateNF?: NumberFormat;
+export interface SheetJSONOpts extends JSON2SheetOpts, OriginOption {}
+
+export interface Table2SheetOpts extends CommonOptions, DateNFOption {
+    /** If true, plaintext parsing will not parse values */
+    raw?: boolean;
+
+    /**
+     * If >0, read the first sheetRows rows
+     * @default 0
+     */
+    sheetRows?: number;
+
+    /** If true, hidden rows and cells will not be parsed */
+    display?: boolean;
 }
 
-/**
- * General utilities
- */
-export interface Utils {
+/** General utilities */
+export interface XLSX$Utils {
     /* --- Import Functions --- */
 
     /** Converts an array of arrays of JS data to a worksheet. */
@@ -570,9 +719,10 @@ export interface Utils {
     json_to_sheet<T>(data: T[], opts?: JSON2SheetOpts): WorkSheet;
     json_to_sheet(data: any[], opts?: JSON2SheetOpts): WorkSheet;
 
-    /** Converts a TABLE DOM element to a worksheet. */
-    table_to_sheet(data: HTMLTableElement,  opts?: Table2SheetOpts): WorkSheet;
-    table_to_book(data: HTMLTableElement,  opts?: Table2SheetOpts): WorkBook;
+    /** BROWSER ONLY! Converts a TABLE DOM element to a worksheet. */
+    table_to_sheet(data: any,  opts?: Table2SheetOpts): WorkSheet;
+    table_to_book(data: any,  opts?: Table2SheetOpts): WorkBook;
+    sheet_add_dom(ws: WorkSheet, data: any, opts?: Table2SheetOpts): WorkSheet;
 
     /* --- Export Functions --- */
 
@@ -584,11 +734,23 @@ export interface Utils {
     /** Generates delimiter-separated-values output */
     sheet_to_csv(worksheet: WorkSheet, options?: Sheet2CSVOpts): string;
 
+    /** Generates UTF16 Formatted Text */
+    sheet_to_txt(worksheet: WorkSheet, options?: Sheet2CSVOpts): string;
+
     /** Generates HTML */
     sheet_to_html(worksheet: WorkSheet, options?: Sheet2HTMLOpts): string;
 
     /** Generates a list of the formulae (with value fallbacks) */
     sheet_to_formulae(worksheet: WorkSheet): string[];
+
+    /** Generates DIF */
+    sheet_to_dif(worksheet: WorkSheet, options?: Sheet2HTMLOpts): string;
+
+    /** Generates SYLK (Symbolic Link) */
+    sheet_to_slk(worksheet: WorkSheet, options?: Sheet2HTMLOpts): string;
+
+    /** Generates ETH */
+    sheet_to_eth(worksheet: WorkSheet, options?: Sheet2HTMLOpts): string;
 
     /* --- Cell Address Utilities --- */
 
@@ -616,6 +778,59 @@ export interface Utils {
 
     /** Converts A1 range to 0-indexed form */
     decode_range(range: string): Range;
+
+    /** Format cell */
+    format_cell(cell: CellObject, v?: any, opts?: any): string;
+
+    /* --- General Utilities --- */
+
+    /** Creates a new workbook */
+    book_new(): WorkBook;
+
+    /** Append a worksheet to a workbook */
+    book_append_sheet(workbook: WorkBook, worksheet: WorkSheet, name?: string): void;
+
+    /** Set sheet visibility (visible/hidden/very hidden) */
+    book_set_sheet_visibility(workbook: WorkBook, sheet: number|string, visibility: number): void;
+
+    /** Set number format for a cell */
+    cell_set_number_format(cell: CellObject, fmt: string|number): CellObject;
+
+    /** Set hyperlink for a cell */
+    cell_set_hyperlink(cell: CellObject, target: string, tooltip?: string): CellObject;
+
+    /** Set internal link for a cell */
+    cell_set_internal_link(cell: CellObject, target: string, tooltip?: string): CellObject;
+
+    /** Add comment to a cell */
+    cell_add_comment(cell: CellObject, text: string, author?: string): void;
+
+    /** Assign an Array Formula to a range */
+    sheet_set_array_formula(ws: WorkSheet, range: Range|string, formula: string): WorkSheet;
+
+    /** Add an array of arrays of JS data to a worksheet */
+    sheet_add_aoa<T>(ws: WorkSheet, data: T[][], opts?: SheetAOAOpts): WorkSheet;
+    sheet_add_aoa(ws: WorkSheet, data: any[][], opts?: SheetAOAOpts): WorkSheet;
+
+    /** Add an array of JS objects to a worksheet */
+    sheet_add_json(ws: WorkSheet, data: any[], opts?: SheetJSONOpts): WorkSheet;
+    sheet_add_json<T>(ws: WorkSheet, data: T[], opts?: SheetJSONOpts): WorkSheet;
+
+
+    consts: XLSX$Consts;
+}
+
+export interface XLSX$Consts {
+    /* --- Sheet Visibility --- */
+
+    /** Visibility: Visible */
+    SHEET_VISIBLE: 0;
+
+    /** Visibility: Hidden */
+    SHEET_HIDDEN: 1;
+
+    /** Visibility: Very Hidden */
+    SHEET_VERYHIDDEN: 2;
 }
 
 /** NODE ONLY! these return Readable Streams */
@@ -624,4 +839,6 @@ export interface StreamUtils {
     to_csv(sheet: WorkSheet, opts?: Sheet2CSVOpts): any;
     /** HTML output stream, generate one line at a time */
     to_html(sheet: WorkSheet, opts?: Sheet2HTMLOpts): any;
+    /** JSON object stream, generate one row at a time */
+    to_json(sheet: WorkSheet, opts?: Sheet2JSONOpts): any;
 }

@@ -1,3 +1,7 @@
-.PHONY: test
+.PHONY: test ctest
 test:
-	node systemjsnode.js
+	cp ../../dist/xlsx.full.min.js .
+	node test.node.js
+
+ctest:
+	python -mSimpleHTTPServer

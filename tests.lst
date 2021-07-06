@@ -12,6 +12,7 @@ apachepoi_hyperlink.xlsb
 apachepoi_protected_passtika.xlsb.pending
 apachepoi_sample.xlsb
 apachepoi_testVarious.xlsb
+author_snowman.xlsb
 calendar_stress_test.xlsb.pending
 cell_style_simple.xlsb
 column_width.xlsb
@@ -29,6 +30,8 @@ number_format.xlsb
 number_format_entities.xlsb
 number_format_russian.xlsb
 numfmt_1_russian.xlsb
+outline.xlsb
+page_margins_2016.xlsb
 phonetic_text.xlsb
 pivot_table_named_range.xlsb
 pivot_table_test.xlsb
@@ -141,6 +144,7 @@ apachepoi_56420.xlsx
 apachepoi_56502.xlsx
 apachepoi_56511.xlsx
 apachepoi_56514.xlsx
+apachepoi_56557.xlsx
 apachepoi_56574.xlsx
 apachepoi_56644.xlsx
 apachepoi_56688_1.xlsx
@@ -187,13 +191,19 @@ apachepoi_59746_NoRowNums.xlsx
 apachepoi_59775.xlsx
 apachepoi_60255_extra_drawingparts.xlsx
 apachepoi_60289.xlsx
+#apachepoi_60384.xlsx
+apachepoi_60709.xlsx
 #apachepoi_60825.xlsx # Missing worksheet xml file
+apachepoi_61034.xlsx
+apachepoi_61060-conditional-number-formatting.xlsx
+apachepoi_61063.xlsx
+apachepoi_61281.xlsx
 apachepoi_AverageTaxRates.xlsx
 apachepoi_Booleans.xlsx
 apachepoi_BrNotClosed.xlsx
 apachepoi_ConditionalFormattingSamples.xlsx
 apachepoi_CustomXMLMapping-singleattributenamespace.xlsx
-apachepoi_CustomXMLMappings-complex-type.xlsx
+#apachepoi_CustomXMLMappings-complex-type.xlsx # Upstream changed file
 apachepoi_CustomXMLMappings.xlsx
 apachepoi_CustomXmlMappings-inverse-order.xlsx
 apachepoi_DataTableCities.xlsx
@@ -204,7 +214,7 @@ apachepoi_ElapsedFormatTests.xlsx
 apachepoi_ExcelTables.xlsx
 apachepoi_ForShifting.xlsx
 apachepoi_FormatChoiceTests.xlsx
-apachepoi_FormatConditionTests.xlsx
+# apachepoi_FormatConditionTests.xlsx # Upstream changed file
 apachepoi_FormatKM.xlsx
 apachepoi_Formatting.xlsx
 apachepoi_FormulaEvalTestData_Copy.xlsx
@@ -213,6 +223,7 @@ apachepoi_FormulaSheetRange.xlsx
 apachepoi_GroupTest.xlsx
 apachepoi_InlineStrings.xlsx
 apachepoi_Intersection-52111-xssf.xlsx
+apachepoi_MatrixFormulaEvalTestData.xlsx
 apachepoi_NewStyleConditionalFormattings.xlsx
 apachepoi_NewlineInFormulas.xlsx
 # apachepoi_NumberFormatApproxTests.xlsx # xlml
@@ -230,6 +241,7 @@ apachepoi_SimpleWithComments.xlsx
 apachepoi_StructuredReferences.xlsx
 apachepoi_StructuredRefs-lots-with-lookups.xlsx
 # apachepoi_Tables.xlsx # xlml
+apachepoi_TablesWithDifferentHeaders.xlsx
 apachepoi_TestShiftRowSharedFormula.xlsx
 apachepoi_TextFormatTests.xlsx
 apachepoi_Themes.xlsx
@@ -253,15 +265,20 @@ apachepoi_atp.xlsx
 apachepoi_bug60858.xlsx
 apachepoi_chartTitle_noTitle.xlsx
 apachepoi_chartTitle_withTitle.xlsx
+apachepoi_chartTitle_withTitleFormula.xlsx
 apachepoi_chart_sheet.xlsx
 apachepoi_commentTest.xlsx
 apachepoi_comments.xlsx
+apachepoi_conditional_formatting_with_formula_on_second_sheet.xlsx
 apachepoi_craftonhills.edu_programreview_report.aspx_goalpriorityreport_0011d159-1eeb-4b63-8833-867b0926e5f3.xlsx
+apachepoi_customIndexedColors.xlsx
+apachepoi_dataValidationTableRange.xlsx
 apachepoi_evaluate_formula_with_structured_table_references.xlsx
 apachepoi_headerFooterTest.xlsx
 apachepoi_noSharedStringTable.xlsx
 apachepoi_picture.xlsx
 apachepoi_poc-shared-strings.xlsx
+apachepoi_poc-xmlbomb-empty.xlsx
 apachepoi_poc-xmlbomb.xlsx
 # apachepoi_protected_passtika.xlsx # password
 apachepoi_ref-56737.xlsx
@@ -274,7 +291,10 @@ apachepoi_sample.xlsx
 apachepoi_shared_formulas.xlsx
 apachepoi_sheetProtection_allLocked.xlsx
 apachepoi_sheetProtection_not_protected.xlsx
+apachepoi_simple-monthly-budget.xlsx
+# apachepoi_style-alternate-content.xlsx # bad xml
 apachepoi_styles.xlsx
+apachepoi_tableStyle.xlsx
 apachepoi_template.xlsx
 apachepoi_unicodeSheetName.xlsx
 apachepoi_workbookProtection-sheet_password-2013.xlsx
@@ -286,6 +306,7 @@ apachepoi_workbookProtection_workbook_structure_protected.xlsx
 apachepoi_workbookProtection_workbook_windows_protected.xlsx
 apachepoi_workbookProtection_worksheet_protected.xlsx
 apachepoi_xlsx-jdbc.xlsx
+author_snowman.xlsx
 calendar_stress_test.xlsx.pending
 cell_style_simple.xlsx
 column_width.xlsx
@@ -362,6 +383,8 @@ openpyxl_r_formulae.xlsx
 openpyxl_r_nonstandard_workbook_name.xlsx
 openpyxl_r_null_archive.xlsx.pending
 openpyxl_r_null_file.xlsx.pending
+outline.xlsx
+page_margins_2016.xlsx
 phonetic_text.xlsx
 pivot_table_named_range.xlsx
 rich_text_stress.xlsx
@@ -416,10 +439,11 @@ smart_tags_2007.xlsx
 spout-xlsx_attack_billion_laughs.xlsx
 spout-xlsx_attack_quadratic_blowup.xlsx
 # spout-xlsx_file_corrupted.xlsx
-spout-xlsx_file_with_no_sheets_in_workbook_xml.xlsx
+# spout-xlsx_file_with_no_sheets_in_workbook_xml.xlsx # explicit error on RT
 # spout-xlsx_file_with_sheet_xml_not_matching_content_types.xlsx
 spout-xlsx_one_sheet_with_inline_strings.xlsx
 spout-xlsx_one_sheet_with_invalid_xml_characters.xlsx
+spout-xlsx_one_sheet_with_pre_encoded_html_entities.xlsx
 spout-xlsx_one_sheet_with_shared_multiline_strings.xlsx
 spout-xlsx_one_sheet_with_shared_strings.xlsx
 spout-xlsx_one_sheet_with_shared_strings_containing_text_and_hyperlink_in_same_cell.xlsx
@@ -439,15 +463,18 @@ spout-xlsx_sheet_with_lots_of_shared_strings.xlsx
 spout-xlsx_sheet_with_missing_cell_reference.xlsx
 spout-xlsx_sheet_with_no_cells.xlsx
 spout-xlsx_sheet_with_no_shared_strings_file.xlsx
+spout-xlsx_sheet_with_prefixed_shared_strings_xml.xlsx
 spout-xlsx_sheet_with_prefixed_xml_files.xlsx
 spout-xlsx_sheet_with_preserve_space_shared_strings.xlsx
 spout-xlsx_sheet_with_pronunciation.xlsx
+spout-xlsx_sheet_with_row_not_starting_at_column_a.xlsx
 spout-xlsx_sheet_with_same_numeric_value_date_formatted_differently.xlsx
 spout-xlsx_sheet_with_untrimmed_inline_strings.xlsx
 spout-xlsx_sheet_with_zeros_in_row.xlsx
 spout-xlsx_sheet_without_dimensions_and_empty_cells.xlsx
 spout-xlsx_sheet_without_dimensions_but_spans_and_empty_cells.xlsx
 spout-xlsx_two_sheets_with_custom_names.xlsx
+spout-xlsx_two_sheets_with_custom_names_and_custom_active_tab.xlsx
 spout-xlsx_two_sheets_with_inline_strings.xlsx
 spout-xlsx_two_sheets_with_shared_strings.xlsx
 spout-xlsx_two_sheets_with_sheets_definition_in_reverse_order.xlsx
@@ -549,10 +576,13 @@ roo_whitespace.xlsm
 AutoFilter.ods
 BlankSheetTypes.ods
 apachepoi_SampleSS.ods
+author_snowman.ods
 cell_style_simple.ods
+comments_stress_test.ods
 formula_stress_test.ods
 merge_cells.ods
 number_format.ods
+outline.ods
 rich_text_stress.ods
 roo_numbers1.ods
 roo_type_excel.ods
@@ -609,6 +639,7 @@ spout-ods_sheet_with_untrimmed_strings.ods
 spout-ods_sheet_with_various_spaces.ods
 spout-ods_sheet_with_zeros_in_row.ods
 spout-ods_two_sheets_with_custom_names.ods
+spout-ods_two_sheets_with_no_settings_xml_file.ods
 spout-ods_two_sheets_with_strings.ods
 sushi.ods
 biff5/NumberFormatCondition.xls
@@ -752,7 +783,7 @@ apachepoi_46515.xls
 apachepoi_46670_http.xls
 apachepoi_46670_local.xls
 apachepoi_46670_ref_airline.xls
-apachepoi_46904.xls
+# apachepoi_46904.xls # 0.12 timeout
 apachepoi_47034.xls
 apachepoi_47154.xls
 apachepoi_47245_test.xls
@@ -802,7 +833,7 @@ apachepoi_52575_source.xls
 apachepoi_53109.xls
 apachepoi_53404.xls
 apachepoi_53433.xls
-apachepoi_53446.xls
+# apachepoi_53446.xls # Node 6-7 OOM
 apachepoi_53588.xls
 apachepoi_53691.xls
 apachepoi_53798_shiftNegative_TMPL.xls
@@ -836,6 +867,9 @@ apachepoi_59830.xls
 apachepoi_59858.xls
 apachepoi_60273.xls
 # apachepoi_60284.xls
+apachepoi_61045_govdocs1_626534.xls
+apachepoi_61287.xls
+# apachepoi_61300.xls # node 0.8 oob
 apachepoi_AbnormalSharedFormulaFlag.xls
 apachepoi_AreaErrPtg.xls
 # apachepoi_BOOK_in_capitals.xls # note: worksheet length exceeds 31 chars
@@ -877,7 +911,8 @@ apachepoi_IntersectionPtg.xls
 apachepoi_IrrNpvTestCaseData.xls
 # apachepoi_LookupFunctionsTestCaseData.xls # xlml
 apachepoi_MRExtraLines.xls
-apachepoi_MatchFunctionTestCaseData.xls
+# apachepoi_MatchFunctionTestCaseData.xls # Upstream changed file
+apachepoi_MatrixFormulaEvalTestData.xls
 apachepoi_MissingBits.xls
 apachepoi_NewStyleConditionalFormattings.xls
 apachepoi_NoGutsRecords.xls
@@ -916,7 +951,7 @@ apachepoi_SolverContainerAfterSPGR.xls
 apachepoi_SquareMacro.xls
 apachepoi_StringContinueRecords.xls
 apachepoi_StringFormulas.xls
-apachepoi_SubtotalsNested.xls
+# apachepoi_SubtotalsNested.xls
 apachepoi_TestRandBetween.xls
 apachepoi_Themes2.xls
 apachepoi_TwoSheetsNoneHidden.xls
@@ -939,6 +974,7 @@ apachepoi_WithTwoHyperLinks.xls
 apachepoi_WrongFormulaRecordType.xls
 apachepoi_XRefCalc.xls
 apachepoi_XRefCalcData.xls
+apachepoi_angelo.edu_content_files_19555-nsse-2011-multiyear-benchmark.xls
 apachepoi_ar.org.apsme.www_Form%20Inscripcion%20Curso%20NO%20Socios.xls
 apachepoi_at.gv.land-oberoesterreich.www_cps_rde_xbcr_SID-4A1B954F-5C07F98E_ooe_stat_download_bp10.xls
 apachepoi_atp.xls
@@ -971,6 +1007,7 @@ apachepoi_ex47747-sharedFormula.xls
 apachepoi_excel_with_embeded.xls
 apachepoi_excelant.xls.pending
 apachepoi_externalFunctionExample.xls
+apachepoi_external_image.xls
 # apachepoi_finance.xls # xlml
 apachepoi_florida_data.ashx.xls
 apachepoi_intercept.xls
@@ -1005,6 +1042,7 @@ apachepoi_text.xls
 apachepoi_unicodeNameRecord.xls
 apachepoi_xor-encryption-abc.xls.pending
 # apachepoi_yearfracExamples.xls # xlml
+author_snowman.xls
 calendar_stress_test.xls.pending
 cell_style_simple.xls
 column_width.xls
@@ -1075,6 +1113,7 @@ jxls-examples_basictags.xls
 jxls-examples_chart.xls
 jxls-examples_colouring.xls
 jxls-examples_department.xls
+jxls-examples_dynamiccolumns.xls
 jxls-examples_dynamicolumns.xls
 jxls-examples_employees.xls
 jxls-examples_ex_temp.xls
@@ -1198,6 +1237,9 @@ number_format.xls
 number_format_entities.xls
 number_format_russian.xls
 numfmt_1_russian.xls
+outline.xls
+page_margins_2016.xls
+page_margins_2016_5.xls
 phonetic_text.xls
 phpexcel_bad_cfb_dir.xls
 pivot_table_named_range.xls
@@ -1213,7 +1255,7 @@ pyExcelerator_oo14.xls
 rich_text_stress.xls
 roo_1900_base.xls
 roo_1904_base.xls
-roo_Bibelbund.xls
+# roo_Bibelbund.xls # 0.10 timeout
 roo_bad_excel_date.xls
 roo_bbu.xls
 roo_boolean.xls
@@ -1371,6 +1413,10 @@ xlsx-stream-d-date-cell.xlsx.xml
 2013/apachepoi_54016.xls.xlsb
 2013/apachepoi_ReadOnlyRecommended.xls.xlsb
 2013/apachepoi_testArraysAndTables.xls.xlsb
+column_width.biff5
+outline.biff5
+row_height.biff5
+sized_boxen.biff5
 artifacts/quattro/write_.csv
 artifacts/quattro/write_.dif
 artifacts/quattro/write_.slk
@@ -1395,3 +1441,5 @@ artifacts/wps/write.et
 # artifacts/wps/write.xls ## bad sheet name
 artifacts/wps/write.xlsx
 artifacts/wps/write.xml
+dbf/d11.dbf
+dbf/vfp3.dbf

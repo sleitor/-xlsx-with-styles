@@ -36,23 +36,21 @@
 	})();
 </script>
     <script src="shim.js"></script>
+    <script src="base64.js"></script>
     <script src="fs_.js"></script>
     <script src="fixtures.js"></script>
     <script src="xlsx.full.min.js"></script>
-    <!--[if IE]>
-      <script type="text/javascript" src="xhr-hack.js"></script>
-    <![endif]-->
     <div id="mocha"></div>
     <script src="mocha.js"></script>
     <script>
       window.initMochaPhantomJS && window.initMochaPhantomJS();
-      mocha.setup({ui:'bdd', timeout:10000});
+      mocha.setup({ui:'bdd', timeout:15000});
     </script>
     <script src="core.js"></script>
     <script>
       if(typeof mochaSaucePlease !== "undefined") mochaSaucePlease();
       else if(window.mochaPhantomJS) mochaPhantomJS.run();
-      else mocha.run();
+      else typeof mocha_sauce !== 'undefined' ? mocha_sauce() : mocha.run();
     </script>
   </body>
 </html>

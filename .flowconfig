@@ -2,21 +2,21 @@
 .*/node_modules/.*
 .*/dist/.*
 .*/tmp/.*
-.*/test.js
 
 .*/bits/.*
 .*/ctest/.*
 .*/misc/.*
 .*/perf/.*
 .*/_book/.*
+.*/packages/.*
 
 .*/demo/browser.js
 .*/shim.js
 
 .*/xlsx.js
+.*/xlsx.mini.js
+.*/xlsx.mini.flow.js
 .*/xlsxworker.js
-.*/xlsxworker1.js
-.*/xlsxworker2.js
 .*/jszip.js
 .*/tests/.*
 .*/demos/.*
@@ -24,11 +24,10 @@
 #.*/xlsx.flow.js
 [include]
 xlsxworker.flow.js
-xlsxworker1.flow.js
-xlsxworker2.flow.js
 xlsx.flow.js
 .*/bin/.*.njs
 .*/demo/browser.flow.js
+test.js
 
 [libs]
 bits/09_types.js
