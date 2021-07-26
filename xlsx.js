@@ -4539,7 +4539,7 @@ function decode_range(range) {
     }
 
 function sheet_add_aoa(_ws, data, opts) {
-        var o = opts || {};
+	var o = opts || {};
 	var dense = _ws ? Array.isArray(_ws) : o.dense;
 	if(DENSE != null && dense == null) dense = DENSE;
 	var ws = _ws || (dense ? ([]) : ({}));
@@ -4552,7 +4552,7 @@ function sheet_add_aoa(_ws, data, opts) {
 		}
 		if(!ws["!ref"]) ws["!ref"] = "A1:A1";
 	}
-        var range = ({s: {c: 10000000, r: 10000000}, e: {c: 0, r: 0}});
+	var range = ({s: {c:10000000, r:10000000}, e: {c:0, r:0}});
 	if(ws['!ref']) {
 		var _range = safe_decode_range(ws['!ref']);
 		range.s.c = _range.s.c;
@@ -4561,14 +4561,13 @@ function sheet_add_aoa(_ws, data, opts) {
 		range.e.r = Math.max(range.e.r, _range.e.r);
 		if(_R == -1) range.e.r = _R = _range.e.r + 1;
 	}
-        for (var R = 0; R != data.length; ++R) {
+	for(var R = 0; R != data.length; ++R) {
 		if(!data[R]) continue;
 		if(!Array.isArray(data[R])) throw new Error("aoa_to_sheet expects an array of arrays");
             for (var C = 0; C != data[R].length; ++C) {
                 if (typeof data[R][C] === 'undefined') continue;
                 var cell = ({v: data[R][C]});
                 var __R = _R + R, __C = _C + C;
-                }
                 if (range.s.r > __R) range.s.r = __R;
                 if (range.s.c > __C) range.s.c = __C;
                 if (range.e.r < __R) range.e.r = __R;
@@ -11969,8 +11968,7 @@ function parse_cc_xml(data) {
         return d;
     }
 
-    //function write_cc_xml(data, opts) {
-    }
+    //function write_cc_xml(data, opts) {}
     /* [MS-XLSB] 2.6.4.1 */
 function parse_BrtCalcChainItem$(data) {
         var out = {};
@@ -15293,20 +15291,20 @@ function parse_ws_xml(data, opts, idx, rels, wb, themes, styles) {
         return s;
     }
 
-    function write_ws_xml_sheetpr(sheetpr) {
-        if(sheetpr.length == 0) return "";
-        var o = '<sheetPr>';
-        for(var i in sheetpr) {
-            for(var j in sheetpr[i]){
-                o += '<' + j;
-                for(var k in sheetpr[i][j])
-                    o += ' ' + k + '="' + sheetpr[i][j][k] + '"';
-                o += '/>'
-            }
-        }
-        return o + '</sheetPr>';
-    }
-
+    // function write_ws_xml_sheetpr(sheetpr) {
+    //     if(sheetpr.length == 0) return "";
+    //     var o = '<sheetPr>';
+    //     for(var i in sheetpr) {
+    //         for(var j in sheetpr[i]){
+    //             o += '<' + j;
+    //             for(var k in sheetpr[i][j])
+    //                 o += ' ' + k + '="' + sheetpr[i][j][k] + '"';
+    //             o += '/>'
+    //         }
+    //     }
+    //     return o + '</sheetPr>';
+    // }
+    //
     function write_ws_xml_merges(merges) {
 	if(merges.length === 0) return "";
         var o = '<mergeCells count="' + merges.length + '">';
@@ -15797,7 +15795,7 @@ var parse_ws_xml_data = (function() {
         var s = wb.SheetNames[idx], sidx = 0, rdata = "";
         var ws = wb.Sheets[s];
         if (ws == null) ws = {};
-        if(ws['!sheetPr'] !== undefined && ws['!sheetPr'].length > 0) o[o.length] = (write_ws_xml_sheetpr(ws['!sheetPr']));
+        // if(ws['!sheetPr'] !== undefined && ws['!sheetPr'].length > 0) o[o.length] = (write_ws_xml_sheetpr(ws['!sheetPr']));
         var ref = ws['!ref']|| 'A1';
 	var range = safe_decode_range(ref);
         if (range.e.c > 0x3FFF || range.e.r > 0xFFFFF) {
@@ -24379,9 +24377,10 @@ function write_cfb_ctr(cfb, o) {
 	}
 	return CFB.write(cfb, o);
 }
-
+var style_builder;
     function write_zip_type(wb, opts) {
-        var o = opts || {};
+      console.log('test');
+        var o = opts || {}
         style_builder = new StyleBuilder(opts);
         var z = write_zip(wb, o);
         var oopts = {};
@@ -25169,9 +25168,10 @@ var XmlNode = (function () {
 		return this;
 	}
 
-	var APOS = "'";
-	QUOTE = '"'
-	var ESCAPED_QUOTE = {}
+	var APOS = "'",
+	QUOTE = '"',
+	ESCAPED_QUOTE = {};
+
 	ESCAPED_QUOTE[QUOTE] = '&quot;'
 	ESCAPED_QUOTE[APOS] = '&apos;'
 
@@ -25249,7 +25249,7 @@ var StyleBuilder = function (options) {
 
 
 	// cache style specs to avoid excessive duplication
-	_hashIndex = {};
+	var _hashIndex = {},
 	_listIndex = [];
 
 	return {

@@ -1,8 +1,8 @@
 {
-	"name": "xlsx",
-	"version": "0.17.0",
-	"author": "sheetjs",
-	"description": "SheetJS Spreadsheet data parser and writer",
+	"name": "xlsx-with-styles",
+	"version": "0.17.1",
+	"author": "Sleitor",
+	"description": "Tuned fork from SheetJS Spreadsheet (with styles) data parser and writer",
 	"keywords": [
 		"excel",
 		"xls",
@@ -60,7 +60,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/SheetJS/sheetjs.git"
+		"url": "git://github.com/sleitor/xlsx-with-styles.git"
 	},
 	"scripts": {
 		"pretest": "npm run lint",
