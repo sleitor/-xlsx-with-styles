@@ -5654,7 +5654,7 @@ function parse_ct(data) {
                 twoCell += '</xdr:cNvPr><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>';
                 twoCell += '<xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId' + rId + '"/>';
                 twoCell += '<a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/>';
-                o[o.length] = (writextag('xdr:twoCellAnchor', twoCell, images[i].attrs));
+                o[o.length] = (writextag('xdr:twoCellAnchor', twoCell, pos.attrs));
             }
         }
 
