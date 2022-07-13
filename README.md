@@ -5,13 +5,13 @@ Style example:
   excelCell.s = {
 	    fill: {
 		patternType: "none", // none / solid
-		fgColor: {rgb: "FF000000"},
-		bgColor: {rgb: "FFFFFFFF"}
+		fgColor: {rgb: "FF000000"}, // argb color value
+		bgColor: {rgb: "FFFFFFFF"} // argb color value
 	    },
 	    font: {
 		name: 'Times New Roman',
 		sz: 16,
-		color: {rgb: "#FF000000"},
+		color: {rgb: "FF000000"}, // argb color value
 		bold: false,
 		italic: false,
 		underline: false
